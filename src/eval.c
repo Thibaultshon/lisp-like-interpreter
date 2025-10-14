@@ -55,9 +55,6 @@ int evalSExpression(struct Node* node, int* res){
     while(node){      
       int val;
       evalSExpression(CAR(node), &val);
-      printf("%d",val);
-      printf("%d\n",*res);
-
       switch (op)
         {
         case ADD: *res = *res + val; break;
@@ -141,7 +138,6 @@ int evalWhile(struct Node* node, int* res){
   struct Node* seq =  CAR(node);
 
   while (pred_val == 0){
-    printf("pre_val: %d \n", pred_val);
     evalSExpression(seq,res);
     if (evalPredicate(CAR(node), &pred_val) == 1) return 1;
   }
@@ -174,7 +170,6 @@ int evalAssign(struct Node* node, int* res){
 
 
 int eval(struct Node* node, int* res){
-  printf("semantics:\n");
   return evalSExpression(node, res);
 }
 

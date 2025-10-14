@@ -64,7 +64,6 @@ void printNode(struct Node* node){
 
 
 struct Node* parseAtom(struct Parser* parser){
-  printf("%s ",enumToString(peak(parser).type));
   struct Node* node = malloc(sizeof(struct Node));
   node->atom = eat(parser);
   node->is_atom = true;
@@ -117,7 +116,6 @@ struct Node* parseSExpression(struct Parser* parser){
 
 
 struct Node*  parse(struct Parser* parser){
-  printf("parser:\n");
   return parseSExpression(parser);
 }
 

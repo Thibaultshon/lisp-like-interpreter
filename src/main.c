@@ -13,35 +13,15 @@
 #include "eval.h"
 
 int main(){
-  /* char input[] = "+++ \n"; */
-  /* char input[] = "(+ 2 (+ 3 4))"; */
-  /* char input[] = "(+ 2 3)"; */
-  /* char input[] = "(/ 8 2  2 2)"; */
-  /* char input[] = "(* 2 2  2 2)"; */
-  /* char input[] = "(- 4 2)"; */
-  /* char input[] = "(+ 5  (- 3 (* 1 1)))"; */
-  /* char input[] = "(/ 8 2  2 (+ 5  (- 3 (* 1 1))))"; */
-  /* char input[] = "(+ 25 35)"; */
-  
-  /* char input[] = "(if 0 1 2)"; */
-  /* char input[] = "(if 1 1 2)"; */
-  /* char input[] = "(if (- 1 1) 1 2)"; */
-/* char input[] = "(if (- 2 1) 1 2)"; */
-
-  /* char input[] = "(switch 3 (case 1 2) (case 3 4))"; */
-  /* char input[] = "(switch 1 (case 1 2) (case 3 4))"; */
-  /* char input[] = "(+ (:= x 4) 1)"; */
-  /* char input[] = "(:= x 4)"; */
 
   //// to implement
+  char input[] = "(:= x 3)";
   /* char input[] = "(:= x 4) (:= y 2)"; */
   /* char input[] = "(+ (:= x (:= y (+ 3 4))) y)"; */
   /* char input[] = "(while 0 (+ 1 2))"; */ // need assignment first
 
 
-
-
-  printf("input:\n %s\n\n",input);
+  printf("\ninput:\n%s\n\n",input);
 
   /////Lex
   struct Token* tokens = lexer(input);
@@ -52,21 +32,21 @@ int main(){
   }
 
   //////Parse
-  printf("\n\n");
+  printf("\n\nParser:\n");
   struct Parser parser;
   parser.tokens = tokens;
   parser.curPos = 0;
   parser.ast = parse(&parser);
-  printf("\n\nas cons:\n");
   printNode(parser.ast);
-  printf("\n\n");
+  printf("\n");
 
 
   /////Eval
+  printf("\nSemantics:\n");
   int result;
   int err = eval(parser.ast, &result);
   printf("error status: %d\n", err);
-  printf("\nresult %d\n",result);
+  printf("result: %d\n",result);
 
   freeTokens(parser.tokens);
   freeNode(parser.ast);
