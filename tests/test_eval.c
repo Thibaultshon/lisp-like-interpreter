@@ -82,6 +82,44 @@ void testAssignStatements(){
   TEST_ASSERT_EQUAL(4,res);
 }
 
+void testNewFeature(){
+//// to implement
+  char input[] = "(:= x 3)";
+  /* char input[] = "(:= x 4) (:= y 2)"; */
+  /* char input[] = "(+ (:= x (:= y (+ 3 4))) y)"; */
+  /* char input[] = "(while 0 (+ 1 2))"; */ // need assignment first
+
+
+  printf("\ninput:\n%s\n\n",input);
+
+  /////Lex
+  tokens = lexer(input);
+  printf("tokens:\n");
+  for (int i = 0; tokens[i].type != END_LINE ;i++){
+    printf("%s ", enumToString(tokens[i].type));
+
+  }
+  //////Parse
+  printf("\n\nParser:\n");
+  parser.tokens = tokens;
+  parser.curPos = 0;
+  parser.ast = parse(&parser);
+  printNode(parser.ast);
+  printf("\n");
+
+
+  /////Eval
+  printf("\nSemantics:\n");
+  int result;
+  int err = eval(parser.ast, &result);
+  printf("error status: %d\n", err);
+  printf("result: %d\n",result);
+  TEST_ASSERT_EQUAL(3,result);
+
+}
+
+
+
 
 int main(){
   UNITY_BEGIN();
@@ -89,5 +127,7 @@ int main(){
   RUN_TEST(testIfStatements);
   RUN_TEST(testSwitchStatements);
   RUN_TEST(testAssignStatements);
+
+  RUN_TEST(testNewFeature);
   return UNITY_END();
 }
