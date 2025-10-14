@@ -98,7 +98,7 @@ int evalPredicate(struct Node* node, int* res){
 
 int evalIF(struct Node* node, int* res){
   int pred_val;                      
-  if (evalPredicate(CAR(node),&pred_val) == 1) return 1;
+  if (evalPredicate(node,&pred_val) == 1) return 1;
 
   struct Node* branch = CDR(node);
   struct Node* seq = CAR(branch); 

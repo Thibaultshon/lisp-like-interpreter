@@ -22,13 +22,16 @@ int main(){
   /* char input[] = "(+ 5  (- 3 (* 1 1)))"; */
   /* char input[] = "(/ 8 2  2 (+ 5  (- 3 (* 1 1))))"; */
   /* char input[] = "(+ 25 35)"; */
-  /* char input[] = "(lambda 25 35)"; */
+  
   /* char input[] = "(if 0 1 2)"; */
   /* char input[] = "(if 1 1 2)"; */
   /* char input[] = "(if (- 1 1) 1 2)"; */
+/* char input[] = "(if (- 2 1) 1 2)"; */
+
   /* char input[] = "(switch 3 (case 1 2) (case 3 4))"; */
+  /* char input[] = "(switch 1 (case 1 2) (case 3 4))"; */
   /* char input[] = "(+ (:= x 4) 1)"; */
-  char input[] = "(:= x 4)";
+  /* char input[] = "(:= x 4)"; */
 
   //// to implement
   /* char input[] = "(:= x 4) (:= y 2)"; */
@@ -40,12 +43,15 @@ int main(){
 
   printf("input:\n %s\n\n",input);
 
+  /////Lex
   struct Token* tokens = lexer(input);
   printf("tokens:\n");
   for (int i = 0; tokens[i].type != END_LINE ;i++){
     printf("%s ", enumToString(tokens[i].type));
 
   }
+
+  //////Parse
   printf("\n\n");
   struct Parser parser;
   parser.tokens = tokens;
@@ -54,6 +60,9 @@ int main(){
   printf("\n\nas cons:\n");
   printNode(parser.ast);
   printf("\n\n");
+
+
+  /////Eval
   int result;
   int err = eval(parser.ast, &result);
   printf("error status: %d\n", err);
