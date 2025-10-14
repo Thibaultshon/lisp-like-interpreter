@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
-
+#include "uthash.h"
 
 
 #define MAXTOKENS 100
@@ -35,8 +35,17 @@ enum TokenType {
   IF,
   WHILE,
 
+  IDENTIFIER,
+
   INVALID,
   END_LINE
+};
+
+
+struct Hash_Node {
+  char *name;
+  int val;
+  UT_hash_handle hh;
 };
 
 
@@ -44,7 +53,10 @@ enum TokenType {
 
 struct Token {
   enum TokenType type;
-  int val;
+  union {
+    int val;
+    char* name;
+  };
 };
 
 
@@ -90,10 +102,13 @@ struct Node* parseSExpression(struct Parser* parser);
 struct Node*  parseAtom(struct Parser* parser);
 struct Node* createCons(struct Node* nodecar, struct  Node* nodecdr);
 
+void freeHashTable(struct Hash_Node* table);
 void freeNode(struct Node* node);
+void freeTokens(struct Token* tokens);
 void printNode(struct Node* node);
 
 struct Token createOpToken(enum TokenType type);
+struct Token createIdentifierToken(char* string);
 struct Token createIntToken(int val);
 struct Token* lexer  (char* input);
 
@@ -102,13 +117,18 @@ int evalSExpression(struct Node*, int* res);
 int evalIF(struct Node* node, int* res);
 int evalWhile(struct Node* node, int* res);
 int evalSwitch(struct Node* node, int* res);
+int evalAssign(struct Node* node, int* res);
 int evalPredicate(struct Node* pred, int* res);
 
-struct Token inHashTable (char* string);
+void add_identifier(struct Hash_Node *identifier);
+struct Hash_Node *find_identifier(char* name);
+void deleteIdentifier(char* name);
+
+struct Token inKeyWords (char* string);
 const char* enumToString(enum TokenType type);
 
-struct Token inHashTable (char* string){ // todo - make into proper hashtable
-  struct Item items[]   = { {"if", IF}, {"while",  WHILE}, {"lambda", LAMBDA}, {":=", ASSIGN}, {"switch", SWITCH}, {"case", CASE}};  // todo - move assign to case
+struct Token inKeyWords (char* string){ // todo - make into proper hashtable
+  struct Item items[]   = { {"if", IF}, {"while",  WHILE}, {"lambda", LAMBDA},{"switch", SWITCH}, {"case", CASE}};  // todo - move assign to case
   size_t length  = sizeof(items)/sizeof(items[0]); 
   struct Token new_token;
   for (int i =0; i < length;i++){
@@ -121,7 +141,34 @@ struct Token inHashTable (char* string){ // todo - make into proper hashtable
   return new_token;
 }
 
-  
+
+
+struct Hash_Node *g_env = NULL;
+
+void addIdentifier(struct Hash_Node *identifier){
+  HASH_ADD_STR(g_env, name,identifier);
+
+}
+
+struct Hash_Node *findIdentifier(char* name){
+  struct Hash_Node *node;
+  HASH_FIND_STR(g_env,name,node);
+  return node;
+}
+
+
+
+
+void deleteIdentifier(char* name){
+  struct Hash_Node* identifier = findIdentifier(name);
+  HASH_DEL(g_env,identifier);
+  if (identifier){
+    free(identifier->name);
+    free(identifier);
+
+  }
+
+}
 
 
 // todo - change aprouch as won't work for user defined
@@ -131,6 +178,10 @@ const char* enumToString(enum TokenType type) {
     return "num";
   case STRING:
     return "string";
+  case IDENTIFIER:
+    return "identifier";
+  case ASSIGN:
+    return "assign";
   case BRACK_OPEN:
     return "(";
   case BRACK_CLOSE:
@@ -177,7 +228,13 @@ int main(){
   /* char input[] = "(if 0 1 2)"; */
   /* char input[] = "(if 1 1 2)"; */
   /* char input[] = "(if (- 1 1) 1 2)"; */
-  char input[] = "(switch 3 (case 1 2) (case 3 4))";
+  /* char input[] = "(switch 3 (case 1 2) (case 3 4))"; */
+  /* char input[] = "(+ (:= x 4) 1)"; */
+  char input[] = "(:= x 4)";
+
+  //// to implement
+  /* char input[] = "(:= x 4) (:= y 2)"; */
+  /* char input[] = "(+ (:= x (:= y (+ 3 4))) y)"; */
   /* char input[] = "(while 0 (+ 1 2))"; */ // need assignment first
 
 
@@ -204,9 +261,9 @@ int main(){
   printf("error status: %d\n", err);
   printf("\nresult %d\n",result);
 
-
+  freeTokens(parser.tokens);
   freeNode(parser.ast);
-  free(parser.tokens);
+  freeHashTable(g_env);
 
 }
 
@@ -219,6 +276,13 @@ struct Token createIntToken(int val){
   struct Token token;
   token.type = NUM;
   token.val = val;
+  return token;
+}
+
+struct Token createIdentifierToken(char* string){
+  struct Token token;
+  token.type = IDENTIFIER;
+  token.name = strdup(string);
   return token;
 }
 
@@ -256,6 +320,14 @@ struct Token* lexer  (char* input){
     case ')':
       tokens[cur_token++] = createOpToken(BRACK_CLOSE);
       break; 
+    case ':':
+      c = input[i++];
+      if (c != '\0'){
+          if (c == '='){
+              tokens[cur_token++] =   createOpToken(ASSIGN);
+            }
+        }
+      break;
     case ' ':
     case '\t':
     case '\n':
@@ -279,22 +351,20 @@ struct Token* lexer  (char* input){
         memcpy(result,start,length);
         result[length] = '\0';
         
-        struct Token token = inHashTable(result);
-        free(result);
+        struct Token token = inKeyWords(result);
         i  = i + length;
         if (!(token.type == INVALID)){
           tokens[cur_token++] = token;
 
         }
-
         else{
-          printf("unknown character %c \n",c);
-          error("lex error");
+          tokens[cur_token++] = createIdentifierToken(result);
+          /* error("lex error"); */
         }
+        free(result);
     }
     }
   }
-  // for other words make the case a word carries on till there is space or a bracket
   tokens[cur_token].type = END_LINE;
   return tokens;
 }
@@ -378,6 +448,8 @@ int evalSExpression(struct Node* node, int* res){
         return evalWhile(CDR(node), res);
       case SWITCH:
         return evalSwitch(CDR(node),res);
+      case ASSIGN:
+        return evalAssign(CDR(node),res);
       case ADD:
         *res = 0; break;
       case MUL:
@@ -411,7 +483,14 @@ int evalSExpression(struct Node* node, int* res){
       node = CDR(node);
     }
   }else{
-    *res= node->atom.val; 
+    enum TokenType type = node->atom.type;
+    if (type == IDENTIFIER){
+      struct Hash_Node* var = findIdentifier(node->atom.name);
+      *res = var->val;
+    }else{
+      *res= node->atom.val; 
+    }
+
   }
   return 0;
 }
@@ -482,20 +561,37 @@ int evalWhile(struct Node* node, int* res){
 
 
 
-  
+int evalAssign(struct Node* node, int* res){
+  char* name = CAR(node)->atom.name; //todo - check if identifier type
+  struct Node* value_node = CAR(CDR(node));
+  int value = value_node->atom.val;
+  struct Hash_Node* var = findIdentifier(name);
+  if (var == NULL){
+    struct Hash_Node* new_var = malloc(sizeof(struct Hash_Node));
+    new_var->name = strdup(name);
+    new_var->val  = value;
+    addIdentifier(new_var);
+  }else{
+    var->val = value;
+  }
+  *res = value;
+  return 0;
+
+}
+
 
 
 
 struct Node* parseAtom(struct Parser* parser){
   printf("%s ",enumToString(peak(parser).type));
-  struct Node* node = malloc(sizeof(struct Node)); 
+  struct Node* node = malloc(sizeof(struct Node));
   node->atom = eat(parser);
   node->is_atom = true;
   return node;
 }
 
 struct Node* createCons(struct Node* nodecar, struct  Node* nodecdr){
-  struct Node* cur_cons = malloc(sizeof(struct Node)); 
+  struct Node* cur_cons = malloc(sizeof(struct Node));
   cur_cons->is_atom = false;
   CAR(cur_cons) = nodecar;
   CDR(cur_cons) = nodecdr;
@@ -508,6 +604,17 @@ int eval(struct Node* node, int* res){
   return evalSExpression(node, res);
 }
 
+void freeHashTable(struct Hash_Node* table){
+  struct Hash_Node *cur, *tmp;
+  HASH_ITER(hh,table,cur, tmp){
+    HASH_DEL(table,cur);
+    free(cur->name);
+    free(cur);
+  }
+}
+  
+
+
 
 
 
@@ -515,13 +622,14 @@ void freeNode(struct Node* node){
   if (!node){
     return ;
   }
-  
   if(!node->is_atom){
     freeNode(node->cons.car);
     freeNode(node->cons.cdr);
   }
   free(node);
 }
+
+
 
 void printNode(struct Node* node){
   if (!node){
@@ -538,30 +646,15 @@ void printNode(struct Node* node){
 
 }
 
+void freeTokens(struct Token *tokens){
+  for (int i =0; tokens[i].type != END_LINE; i++){
+    if (tokens[i].type == IDENTIFIER){
+      free(tokens[i].name);
+    }
+  }
+  free(tokens);
+}
 
-
-/* (cons + 1 */
-/* (cons 1 (cons 2 3)) */
-
-
-
-//free all children of node
-
-
-
-/* + -> 2 -> + -> 3 -> 4  */
-/* + -> 3 ->4 */
-
-
-/* + -> 2   */
-/*   -> + -> 3  */
-/*        -> 4   */
-         
-/* + -> 3  */
-/*   -> 4   */
-
-  
-  
     
 
   
