@@ -26,7 +26,7 @@ int evalSExpression(struct Node* node, int* res){
   } 
   if (!node->is_atom){
     enum TokenType op = CAR(node)->atom.type;
-
+    int prev;
     switch(op)
       {
       case IF:
@@ -37,10 +37,23 @@ int evalSExpression(struct Node* node, int* res){
         return evalSwitch(CDR(node),res);
       case ASSIGN:
         return evalAssign(CDR(node),res);
+
       case ADD:
         *res = 0; break;
+
+      case EQ:
+      case NEQ:
+      case GT:
+      case LT:
+        node = CDR(node);
+
+        evalSExpression(CAR(node), &prev);
+        *res = 1;
+
       case MUL:
         *res = 1; break;
+
+
       case DIV:
       case SUB:
         node = CDR(node);
@@ -60,6 +73,12 @@ int evalSExpression(struct Node* node, int* res){
         case SUB: *res = *res - val; break;
         case MUL: *res = *res * val; break;
         case DIV:  *res = *res / val; break;
+
+
+        case NEQ:  *res = *res && prev != val; prev = val;break; // todo - way to finish early
+        case EQ:  *res = *res && prev == val; prev = val;break;
+        case GT:  *res = *res && prev > val; prev = val;break;
+        case LT: *res = *res && prev < val; prev = val; break;
         default: break;
         }
 
@@ -90,7 +109,7 @@ int evalIF(struct Node* node, int* res){
   struct Node* seq = CAR(branch); 
   struct Node* alt = CAR(CDR(branch)); // todo - error check
   
-  if (pred_val == 0){
+  if (pred_val != 0){
     return evalSExpression(seq,res);
 
   }else{
@@ -127,7 +146,7 @@ int evalWhile(struct Node* node, int* res){
 
   struct Node* init_seq =  CDR(node);
 
-  while (pred_val == 0){
+  while (pred_val != 0){
   struct Node* cur_seq  = init_seq;
     while (cur_seq != NULL){
       evalSExpression(CAR(cur_seq),res);  

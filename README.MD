@@ -6,7 +6,8 @@ WARNING: Work in progress
 This is a simple interpreter with a repl.
 
 Currently it only supports:
-- basic arithmetic operations (+ - / *)
+- basic arithmetic operators (+ - / *)
+- basic relational operators (> < = /=)
 - basic control flow (if switch while)
 - assignment (:=)
 
@@ -44,11 +45,11 @@ Use exit() to exit the program
 1
 >> (* 20 100)
 2000
->> (if 0 1 2)
-1
 >> (if 1 1 2)
+1
+>> (if 0 1 2)
 2
->> (if (- 1 1) 1 2)
+>> (if (- 2 1) 1 2)
 1
 >> (switch 3 (case 1 2) (case 3 4))
 4
@@ -56,6 +57,22 @@ Use exit() to exit the program
 2
 >> (:= x 4)
 4
+>> x
+4
+>> (:= a 5)
+5
+>> (:= b 2)
+2
+>> (> 2 1)
+1
+>> (= 1 2 1 1 2)
+0
+>> (< 1 2 3 4 5)
+1
+>> (while a (:= a (- a 1)) (:= b (+ b 1) ))
+7
+>> b
+7
 >> exit()
 ```
 

@@ -80,6 +80,14 @@ const char* enumToString(enum TokenType type) {
     return "(";
   case BRACK_CLOSE:
     return ")";
+  case EQ:
+    return "=";
+  case NEQ:
+    return "/=";
+  case GT:
+    return ">";
+  case LT:
+    return "<";
   case ADD:
     return "+";
   case SUB:
@@ -124,10 +132,21 @@ struct Token* lexer  (char* input){
       tokens[cur_token++] = createOpToken(SUB);
       break;
     case '/':
-      tokens[cur_token++] = createOpToken(DIV);
+      if (input[i] == '='){
+        c = input[i++];
+        tokens[cur_token++] =   createOpToken(NEQ);
+      }else{
+        tokens[cur_token++] = createOpToken(DIV);
+      }
       break;
     case '*':
       tokens[cur_token++] = createOpToken(MUL);
+      break;
+    case '>':
+      tokens[cur_token++] = createOpToken(GT);
+      break;
+    case '<':
+      tokens[cur_token++] = createOpToken(LT);
       break;
     case '(':
       tokens[cur_token++] = createOpToken(BRACK_OPEN);
@@ -136,13 +155,15 @@ struct Token* lexer  (char* input){
       tokens[cur_token++] = createOpToken(BRACK_CLOSE);
       break; 
     case ':':
-      c = input[i++];
-      if (c != '\0'){
-          if (c == '='){
-              tokens[cur_token++] =   createOpToken(ASSIGN);
-            }
-        }
+      if (input[i] == '='){
+        c = input[i++];
+        tokens[cur_token++] =   createOpToken(ASSIGN);
+      }
       break;
+    case '=' :
+      tokens[cur_token++] = createOpToken(EQ);
+      break;
+
     case ' ':
     case '\t':
     case '\n':
@@ -183,3 +204,4 @@ struct Token* lexer  (char* input){
   tokens[cur_token].type = END_LINE;
   return tokens;
 }
+

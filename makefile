@@ -1,5 +1,5 @@
 CC = gcc -m64
-CFLAGS = -Iinclude -Iexternal/unity -Iexternal/uthash
+CFLAGS = -Iinclude -Iexternal/unity -Iexternal/uthash -Wall -Werror -Wpedantic
 OBJS = build/eval.o build/env.o build/parser.o build/tokenize.o build/util.o
 
 all: bin/main.exe

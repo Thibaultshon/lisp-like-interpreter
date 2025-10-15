@@ -11,6 +11,11 @@ enum TokenType {
   DIV,
   MUL,
 
+  GT,
+  LT,
+  NEQ,
+  EQ,
+
   SWITCH,
   CASE,
   
