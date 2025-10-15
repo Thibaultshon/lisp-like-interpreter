@@ -21,7 +21,8 @@ Currently it only supports:
 
 
 ## Starting program
-Ensure that you have make installed
+Ensure that you have make installed.
+
 To build and start the repl, run this in the command line:
 
 ```
