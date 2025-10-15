@@ -22,6 +22,7 @@ struct Item{
 
 
 void freeTokens(struct Token *tokens){
+  if (tokens == NULL) return;
   for (int i =0; tokens[i].type != END_LINE; i++){
     if (tokens[i].type == IDENTIFIER){
       free(tokens[i].name);
@@ -157,16 +158,16 @@ struct Token* lexer  (char* input){
       else { /// todo - change if doen't need new string each time - simplify
         char *start= &input[i-1];
         char* end = start;
-        while (isalnum(*end)){
+        while (*end && isalnum(*end)){
           end++;          
         }
         size_t length = end - start;
         char *result = malloc(length + 1);
         memcpy(result,start,length);
         result[length] = '\0';
-        
+
         struct Token token = inKeyWords(result);
-        i  = i + length;
+        i = (int)(end - input);
         if (!(token.type == INVALID)){
           tokens[cur_token++] = token;
 

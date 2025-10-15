@@ -16,7 +16,7 @@ void setUp(){
 
 void tearDown(){
   freeTokens(parser.tokens);
-  freeNode(parser.ast);     
+  freeNode(parser.ast);
   freeEnv();
 }
 
@@ -84,7 +84,8 @@ void testAssignStatements(){
 
 void testNewFeature(){
 //// to implement
-  char input[] = "(:= x 3)";
+  /* char input[] = "(:= x 3) (:= y 2)"; */
+  char input[] = "(:= x 3) (:= y 2) (+ 4 x)";
   /* char input[] = "(:= x 4) (:= y 2)"; */
   /* char input[] = "(+ (:= x (:= y (+ 3 4))) y)"; */
   /* char input[] = "(while 0 (+ 1 2))"; */ // need assignment first
@@ -97,9 +98,8 @@ void testNewFeature(){
   printf("tokens:\n");
   for (int i = 0; tokens[i].type != END_LINE ;i++){
     printf("%s ", enumToString(tokens[i].type));
-
   }
-  //////Parse
+  /* //////Parse */
   printf("\n\nParser:\n");
   parser.tokens = tokens;
   parser.curPos = 0;

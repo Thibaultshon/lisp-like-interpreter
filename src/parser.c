@@ -101,21 +101,21 @@ struct Node* parseSExpression(struct Parser* parser){
         prev_cons = cur_cons;
 
       }
-      eat(parser); //consume ) // add in if statment to check if ) otherwise throw error
+      eat(parser); //todo - consume ) // add in if statment to check if ) otherwise throw error
 
       return head;
     }
   }
   else{
-    return parseAtom(parser); // maybe change to create atom
+    return parseAtom(parser); // todo - maybe change to create atom
   }
-  return NULL; //error
+  return NULL; //todo - error
 }
 
 
 
 
 struct Node*  parse(struct Parser* parser){
-  return parseSExpression(parser);
+    return parseSExpression(parser);
 }
 
