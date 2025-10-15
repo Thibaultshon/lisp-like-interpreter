@@ -12,7 +12,6 @@
 #include "eval.h"
 
 
-int evalPredicate(struct Node* node, int* res);
 int evalIF(struct Node* node, int* res);
 int evalSwitch(struct Node* node, int* res);
 int evalWhile(struct Node* node, int* res);
@@ -82,20 +81,10 @@ int evalSExpression(struct Node* node, int* res){
 
 
 
-int evalPredicate(struct Node* node, int* res){
-  struct Node* predictate = CAR(node);
-  if (!predictate->is_atom){
-    evalSExpression(predictate,res);
-  }else{
-    *res = predictate->atom.val;
-  }
-  return 0;
-}
-
 
 int evalIF(struct Node* node, int* res){
   int pred_val;                      
-  if (evalPredicate(node,&pred_val) == 1) return 1;
+  if (evalSExpression(CAR(node), &pred_val) == 1) return 1;
 
   struct Node* branch = CDR(node);
   struct Node* seq = CAR(branch); 
@@ -134,12 +123,17 @@ int evalSwitch(struct Node* node, int* res){
 
 int evalWhile(struct Node* node, int* res){
   int pred_val;                      
-  if (evalPredicate(CAR(node), &pred_val) == 1) return 1;
-  struct Node* seq =  CAR(node);
+  if (evalSExpression(CAR(node), &pred_val) == 1) return 1;
+
+  struct Node* init_seq =  CDR(node);
 
   while (pred_val == 0){
-    evalSExpression(seq,res);
-    if (evalPredicate(CAR(node), &pred_val) == 1) return 1;
+  struct Node* cur_seq  = init_seq;
+    while (cur_seq != NULL){
+      evalSExpression(CAR(cur_seq),res);  
+      cur_seq = CDR(cur_seq);
+    }
+    if (evalSExpression(CAR(node), &pred_val) == 1) return 1;
   }
   return 0;
 }
@@ -148,8 +142,10 @@ int evalWhile(struct Node* node, int* res){
 
 int evalAssign(struct Node* node, int* res){
   char* name = CAR(node)->atom.name; //todo - check if identifier type
-  struct Node* value_node = CAR(CDR(node));
-  int value = value_node->atom.val;
+  
+  int value;
+  evalSExpression(CAR(CDR(node)),&value);
+
   struct Hash_Node* var = findIdentifier(name);
   if (var == NULL){
     struct Hash_Node* new_var = malloc(sizeof(struct Hash_Node));
@@ -163,9 +159,6 @@ int evalAssign(struct Node* node, int* res){
   return 0;
 
 }
-
-
-
 
 
 

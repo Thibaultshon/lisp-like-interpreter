@@ -26,8 +26,10 @@ int interpret(char* input){
   tokens= lexer(input);
   parser.tokens = tokens;
   parser.curPos = 0;
-  parser.ast = parse(&parser);
-  eval(parser.ast, &result);
+  while (peak(&parser).type != END_LINE){
+    parser.ast = parse(&parser);
+    eval(parser.ast, &result);
+  }
   return result;
 }
 
@@ -80,16 +82,34 @@ void testAssignStatements(){
   TEST_ASSERT_EQUAL(5,res);
   res = interpret("(:= x 4)");
   TEST_ASSERT_EQUAL(4,res);
+  res = interpret("(:= x 3) x");
+  TEST_ASSERT_EQUAL(3,res);
+  res = interpret("(:= x 3) (:= y 2) (+ 4 x)");
+  TEST_ASSERT_EQUAL(7,res);
 }
 
-void testNewFeature(){
-//// to implement
-  /* char input[] = "(:= x 3) (:= y 2)"; */
-  char input[] = "(:= x 3) (:= y 2) (+ 4 x)";
-  /* char input[] = "(:= x 4) (:= y 2)"; */
-  /* char input[] = "(+ (:= x (:= y (+ 3 4))) y)"; */
-  /* char input[] = "(while 0 (+ 1 2))"; */ // need assignment first
+void testWhileLoop(){
+    int res;
+    res = interpret("(:= x 0) (:= y 0) (while x (:= y (+ y 1)) (:= x 1))  y");
+    TEST_ASSERT_EQUAL(1,res);
+    res = interpret("(:= x 0) (:= y 0) (while x (:= x 5) ) x");
+    TEST_ASSERT_EQUAL(5,res);
+    res = interpret("(:= x 0) (:= y 5) (while x (:= y  (+ y 1)) (:= x 1) y)");
+    TEST_ASSERT_EQUAL(6,res);
+    res = interpret("(:= x 0) (:= y 5) (while x (:= y  (+ y 1)) (:= x 1)) y");
+    TEST_ASSERT_EQUAL(6,res);
+    res = interpret("(:= x 0) (:= y 0) (while x (:= y  (+ y 1)) (:= d 3) (:= x 1) y)");
+    TEST_ASSERT_EQUAL(1,res);
+    res = interpret("(:= x 0) (:= y 0) (while x (:= y  (+ y 1)) (:= x 5) )");
+    TEST_ASSERT_EQUAL(5,res);
+}
 
+
+void testNewFeature(){
+  //// to implement
+  /* char input[] = "(+ (:= x (:= y (+ 3 4))) y)"; */
+
+  char input[] = "";
 
   printf("\ninput:\n%s\n\n",input);
 
@@ -98,23 +118,26 @@ void testNewFeature(){
   printf("tokens:\n");
   for (int i = 0; tokens[i].type != END_LINE ;i++){
     printf("%s ", enumToString(tokens[i].type));
+
   }
-  /* //////Parse */
-  printf("\n\nParser:\n");
+  int result;
+  int err;
   parser.tokens = tokens;
   parser.curPos = 0;
-  parser.ast = parse(&parser);
-  printNode(parser.ast);
-  printf("\n");
+  while (peak(&parser).type != END_LINE){
+    //////Parse
+    printf("\n\nParser:\n");
+    parser.ast = parse(&parser);
+    printNode(parser.ast);
+    printf("\n");
 
-
-  /////Eval
-  printf("\nSemantics:\n");
-  int result;
-  int err = eval(parser.ast, &result);
-  printf("error status: %d\n", err);
-  printf("result: %d\n",result);
-  TEST_ASSERT_EQUAL(3,result);
+    
+    /////Eval
+    printf("\nSemantics:\n");
+    err = eval(parser.ast, &result);
+    printf("error status: %d\n", err);
+    printf("result: %d\n",result);
+  }
 
 }
 
@@ -127,7 +150,8 @@ int main(){
   RUN_TEST(testIfStatements);
   RUN_TEST(testSwitchStatements);
   RUN_TEST(testAssignStatements);
+  RUN_TEST(testWhileLoop);
 
-  RUN_TEST(testNewFeature);
+  /* RUN_TEST(testNewFeature); */
   return UNITY_END();
 }

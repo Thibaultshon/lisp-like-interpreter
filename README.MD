@@ -7,12 +7,11 @@ This is a simple interpreter with a repl.
 
 Currently it only supports:
 - basic arithmetic operations (+ - / *)
-- basic control flow (if switch)
+- basic control flow (if switch while)
 - assignment (:=)
 
 
 ## Todo
-- [ ] add while loop
 - [ ] add lexical scoping
 - [ ] add lambdas
 - [ ] add error handling
