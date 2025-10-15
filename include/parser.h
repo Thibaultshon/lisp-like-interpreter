@@ -27,6 +27,6 @@ struct Node {
 struct Node*  parse(struct Parser* parser);
 void freeNode(struct Node* node);
 void printNode(struct Node* node);
-
+struct Token peak(struct Parser* parser);
 
 #endif

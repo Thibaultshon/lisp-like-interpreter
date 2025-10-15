@@ -18,12 +18,21 @@ int interpret(char* input,int* res){
   tokens= lexer(input);
   parser.tokens = tokens;
   parser.curPos = 0;
-  parser.ast = parse(&parser);
-  int error = eval(parser.ast, res);
+
+  while (peak(&parser).type != END_LINE){
+    parser.ast = parse(&parser);
+    int status = eval(parser.ast, res);
+    if (status !=0){
+      fprintf(stderr,"\nSemantic Error\n");
+      return status;
+    }else{
+      printf("%d\n",*res);
+    }
+  }
   freeTokens(parser.tokens);
   freeNode(parser.ast);
   freeEnv();
-  return error;
+  return 0;
 }
 
 int repl(){
@@ -38,12 +47,10 @@ int repl(){
     if (strcmp(input,"exit()") ==0){
         break;
     }
-    int status = interpret(input,&res);
-    if (status !=0){
-      fprintf(stderr,"\nSemantic Error\n");
-    }else{
-      printf("%d\n",res);
+    if (interpret(input,&res)!=0){
+      return 1;
     }
+
       
   }
   return 0;
