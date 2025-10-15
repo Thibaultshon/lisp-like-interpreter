@@ -7,7 +7,7 @@ This is a simple interpreter with a repl.
 
 Currently it only supports:
 - basic arithmetic operations (+ - / *)
-- basic control flow (if while)
+- basic control flow (if switch)
 - assignment (:=)
 
 
