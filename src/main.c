@@ -31,7 +31,7 @@ int interpret(char* input,int* res){
   }
   freeTokens(parser.tokens);
   freeNode(parser.ast);
-  freeEnv();
+
   return 0;
 }
 
@@ -51,8 +51,8 @@ int repl(){
       return 1;
     }
 
-      
   }
+  freeEnv();
   return 0;
 }
 
