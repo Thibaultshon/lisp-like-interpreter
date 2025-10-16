@@ -50,7 +50,6 @@ void freeNode(struct Node* node){
 
 void printNode(struct Node* node){
   if (!node){
-    printf("nil");
     return ;
   }
   if(!node->is_atom){

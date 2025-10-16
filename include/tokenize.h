@@ -20,7 +20,9 @@ enum TokenType {
   CASE,
   
   ASSIGN,
+  LET,
   LAMBDA,
+
   IF,
   WHILE,
 

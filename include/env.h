@@ -3,20 +3,31 @@
 
 #include "uthash.h"
 
-struct Hash_Node {
+
+struct Binding {
   char *name;
   int val;
   UT_hash_handle hh;
 };
 
-extern struct Hash_Node *g_env;
 
-void addIdentifier(struct Hash_Node *identifier);
+struct EnvFrame {
+  struct EnvFrame * parent;
+  struct Binding * bindings;
+};
 
-struct Hash_Node *findIdentifier(char* name);
 
-void deleteIdentifier(char* name);
 
-void freeEnv();
+
+void addIdentifier(struct EnvFrame* frame, struct Binding *identifier);
+
+void deleteIdentifier(struct EnvFrame* frame,char* name);
+
+struct Binding * findIdentifier(struct EnvFrame* frame ,char* name);
+
+struct EnvFrame * enterEnv(struct EnvFrame* cur_env);
+
+struct EnvFrame * leaveEnv(struct EnvFrame* cur_env);
+
 
 #endif

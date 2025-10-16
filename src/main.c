@@ -36,6 +36,7 @@ int repl(){
   printf("Starting REPL:\n");
   printf("Use exit() to exit the program \n");
   int res;
+  g_env = enterEnv(NULL);
   while(1){
     printf(">> ");
     char input[1024];
@@ -49,7 +50,7 @@ int repl(){
     }
 
   }
-  freeEnv();
+  leaveEnv(g_env);
   return 0;
 }
 

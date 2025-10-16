@@ -10,18 +10,18 @@ struct Parser parser;
 
 
 void setUp(){
-  g_env = NULL;
+  g_env = enterEnv(NULL);
 }
 
 void tearDown(){
   freeNode(parser.ast);
-  freeEnv();
+  leaveEnv(g_env);
 }
 
 
 int interpret(char* input){
   int result;
-  g_env = NULL;
+  g_env = enterEnv(NULL);
   parser.curPos = 0;
   while (peek(&parser,input).type != END_LINE){
     parser.ast = parse(&parser,input);
@@ -143,13 +143,15 @@ void testRelationalOperators(){
 
 void testNewFeature(){
   //// to implement
+  char input[]= "(let ((x 2) (y 3)) x)";
 
-  char input[]= "(:= x 4)";
+  /* char input[]= "(let ((x 2)) x)"; */
+  /* char input[]= "(:= x 3) (+ (let ((x 2)) x) x)"; */
   printf("\ninput:\n%s\n\n",input);
   
 
-  int result;
-  int err;
+  /* int result; */
+  /* int err; */
 
   printf("\nLexer:\n");
   printStringToTokens(input);
@@ -163,11 +165,11 @@ void testNewFeature(){
     printNode(parser.ast);
     printf("\n");
     
-    ////    Eval
-    printf("\nSemantics:\n");
-    err = eval(parser.ast, &result);
-    printf("error status: %d\n", err);
-    printf("result: %d\n",result);
+  /*   ////    Eval */
+  /*   printf("\nSemantics:\n"); */
+  /*   err = eval(parser.ast, &result); */
+  /*   printf("error status: %d\n", err); */
+  /*   printf("result: %d\n",result); */
   }
 
 }

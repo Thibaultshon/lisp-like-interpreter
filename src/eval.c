@@ -17,8 +17,10 @@ int evalSwitch(struct Node* node, int* res);
 int evalWhile(struct Node* node, int* res);
 int evalAssign(struct Node* node, int* res);
 int evalSExpression(struct Node* node, int* res);
+int evalLet(struct Node* node, int* res);
 
 
+struct EnvFrame* g_env = NULL;
 
 int evalSExpression(struct Node* node, int* res){
   if (node == NULL){
@@ -30,13 +32,15 @@ int evalSExpression(struct Node* node, int* res){
     switch(op)
       {
       case IF:
-        return evalIF(CDR(node), res);
+        return evalIF(CDR(node), res); //todo - just pass node and do cdr within the actual function
       case WHILE:
         return evalWhile(CDR(node), res);
       case SWITCH:
         return evalSwitch(CDR(node),res);
       case ASSIGN:
         return evalAssign(CDR(node),res);
+      case LET:
+        return evalLet(CDR(node),res);
 
       case ADD:
         *res = 0; break;
@@ -88,7 +92,7 @@ int evalSExpression(struct Node* node, int* res){
   }else{
     enum TokenType type = node->atom.type;
     if (type == IDENTIFIER){
-      struct Hash_Node* var = findIdentifier(node->atom.name);
+      struct Binding* var = findIdentifier(g_env,node->atom.name);
       *res = var->val;
     }else{
       *res= node->atom.val; 
@@ -147,7 +151,7 @@ int evalWhile(struct Node* node, int* res){
   struct Node* init_seq =  CDR(node);
 
   while (pred_val != 0){
-  struct Node* cur_seq  = init_seq;
+    struct Node* cur_seq  = init_seq;
     while (cur_seq != NULL){
       evalSExpression(CAR(cur_seq),res);  
       cur_seq = CDR(cur_seq);
@@ -165,12 +169,12 @@ int evalAssign(struct Node* node, int* res){
   int value;
   evalSExpression(CAR(CDR(node)),&value);
 
-  struct Hash_Node* var = findIdentifier(name);
+  struct Binding* var = findIdentifier(g_env,name);
   if (var == NULL){
-    struct Hash_Node* new_var = malloc(sizeof(struct Hash_Node));
+    struct Binding* new_var = malloc(sizeof(struct Binding));
     new_var->name = strdup(name);
     new_var->val  = value;
-    addIdentifier(new_var);
+    addIdentifier(g_env,new_var);
   }else{
     var->val = value;
   }
@@ -179,6 +183,9 @@ int evalAssign(struct Node* node, int* res){
 
 }
 
+int evalLet(struct Node* node, int* res){
+  return 0;
+}
 
 
 int eval(struct Node* node, int* res){
