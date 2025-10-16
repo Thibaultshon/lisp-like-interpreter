@@ -182,8 +182,10 @@ int evalAssign(struct Node* node, int* res){
 
 
 int eval(struct Node* node, int* res){
-  return evalSExpression(node, res);
+  // todo - backup reset res to something if not set
+  return evalSExpression(node,res);
 }
+
 
 
 

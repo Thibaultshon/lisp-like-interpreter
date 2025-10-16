@@ -20,18 +20,6 @@ struct Item{
 
 
 
-
-void freeTokens(struct Token *tokens){
-  if (tokens == NULL) return;
-  for (int i =0; tokens[i].type != END_LINE; i++){
-    if (tokens[i].type == IDENTIFIER){
-      free(tokens[i].name);
-    }
-  }
-  free(tokens);
-}
-
-
 struct Token inKeyWords (char* string){ // todo - make into proper hashtable
   struct Item items[]   = { {"if", IF}, {"while",  WHILE}, {"lambda", LAMBDA},{"switch", SWITCH}, {"case", CASE}};  // todo - move assign to case
   size_t length  = sizeof(items)/sizeof(items[0]); 
@@ -40,7 +28,7 @@ struct Token inKeyWords (char* string){ // todo - make into proper hashtable
     if  (strcmp(items[i].name,string)==0){
       new_token.type = items[i].token;
       return new_token;
-      }
+    }
   };
   new_token.type = INVALID;
   return new_token;
@@ -108,6 +96,8 @@ const char* enumToString(enum TokenType type) {
     return "switch";
   case CASE:
     return "CASE";
+  case INVALID:
+    return "INVALID";
   default:
     return "ERROR";
 
@@ -117,67 +107,55 @@ const char* enumToString(enum TokenType type) {
 
 
 
-struct Token* lexer  (char* input){
-  struct Token* tokens = malloc(MAXTOKENS* sizeof (struct Token));
-  int cur_token = 0;
-  int i = 0;
-  char c;
-  while ((c= input[i++]) != '\0'){ //or read input// or EOF
-    /* printf("%c",c); */
-    switch (c){
-    case '+':
-      tokens[cur_token++] = createOpToken(ADD);
-      break;
-    case '-':
-      tokens[cur_token++] = createOpToken(SUB);
-      break;
-    case '/':
-      if (input[i] == '='){
-        c = input[i++];
-        tokens[cur_token++] =   createOpToken(NEQ);
-      }else{
-        tokens[cur_token++] = createOpToken(DIV);
-      }
-      break;
-    case '*':
-      tokens[cur_token++] = createOpToken(MUL);
-      break;
-    case '>':
-      tokens[cur_token++] = createOpToken(GT);
-      break;
-    case '<':
-      tokens[cur_token++] = createOpToken(LT);
-      break;
-    case '(':
-      tokens[cur_token++] = createOpToken(BRACK_OPEN);
-      break; 
-    case ')':
-      tokens[cur_token++] = createOpToken(BRACK_CLOSE);
-      break; 
-    case ':':
-      if (input[i] == '='){
-        c = input[i++];
-        tokens[cur_token++] =   createOpToken(ASSIGN);
-      }
-      break;
-    case '=' :
-      tokens[cur_token++] = createOpToken(EQ);
-      break;
+struct Token tokenize  (char* input, int* i){
+  while (isspace(input[*i])) (*i)++;
+  if (input[*i]== '\0') return createOpToken(END_LINE);
 
-    case ' ':
-    case '\t':
-    case '\n':
-      break; 
-    default:
-      if (isdigit(c)){ 
-        char *end;
-        int val = strtol(&input[i-1],&end,10);
-        tokens[cur_token++] = createIntToken(val);
-        i = end - input;       
-      }
+  char c =  input[*i];
+  (*i)++;
+  
+  switch (c){
+  case '+':
+    return createOpToken(ADD);
+  case '-':
+    return createOpToken(SUB);
+  case '/':
+    if (input[*i] == '='){
+      c = input[(*i)++];
+      return  createOpToken(NEQ);
+    }
+    return createOpToken(DIV);
+  case '*':
+    return createOpToken(MUL);
+  case '>':
+    return createOpToken(GT);
+    break;
+  case '<':
+    return createOpToken(LT);
+  case '(':
+    return createOpToken(BRACK_OPEN);
+  case ')':
+    return createOpToken(BRACK_CLOSE);
+  case ':':
+    if (input[*i] == '='){
+      c = input[(*i)++];
+      return  createOpToken(ASSIGN);
+    }
+    return createOpToken(INVALID);
+  case '=' :
+    return createOpToken(EQ);
+  default:
+    if (isdigit(c)){ 
+      char *end;
+      int val = strtol(&input[(*i)-1],&end,10);
       
-      else { /// todo - change if doen't need new string each time - simplify
-        char *start= &input[i-1];
+      *i = end - input;       
+      return createIntToken(val);
+    }
+      
+    else if (isalpha(c)){ /// is laphanum
+        struct Token token;
+        char *start= &input[(*i)-1];
         char* end = start;
         while (*end && isalnum(*end)){
           end++;          
@@ -187,21 +165,21 @@ struct Token* lexer  (char* input){
         memcpy(result,start,length);
         result[length] = '\0';
 
-        struct Token token = inKeyWords(result);
-        i = (int)(end - input);
-        if (!(token.type == INVALID)){
-          tokens[cur_token++] = token;
+        *i = (int)(end - input);
 
-        }
-        else{
-          tokens[cur_token++] = createIdentifierToken(result);
-          /* error("lex error"); */
+        token = inKeyWords(result);
+        if (token.type == INVALID){
+          token  = createIdentifierToken(result);
         }
         free(result);
-    }
+        return token;
+
+      }else{
+      
+      return createOpToken(INVALID);
+      
     }
   }
-  tokens[cur_token].type = END_LINE;
-  return tokens;
 }
+
 

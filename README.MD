@@ -13,9 +13,9 @@ Currently it only supports:
 
 
 ## Todo
-- [ ] add lexical scoping
-- [ ] add lambdas
-- [ ] add error handling
+- [ ] Add lexical scoping
+- [ ] Add lambdas
+- [ ] Add error handling
 - [ ] Read from file
 
 
@@ -59,16 +59,16 @@ Use exit() to exit the program
 4
 >> x
 4
->> (:= a 5)
-5
->> (:= b 2)
-2
 >> (> 2 1)
 1
 >> (= 1 2 1 1 2)
 0
 >> (< 1 2 3 4 5)
 1
+>> (:= a 5)
+5
+>> (:= b 2)
+2
 >> (while a (:= a (- a 1)) (:= b (+ b 1) ))
 7
 >> b

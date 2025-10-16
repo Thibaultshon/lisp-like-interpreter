@@ -46,9 +46,7 @@ struct Token {
 
 const char* enumToString(enum TokenType type);
 
-struct Token* lexer  (char* input);
-
-void freeTokens(struct Token *tokens);
+struct Token tokenize  (char* input, int* i);
 
 #endif
 

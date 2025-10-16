@@ -12,15 +12,13 @@
 #include "parser.h"
 #include "eval.h"
 
-int interpret(char* input,int* res){
-  struct Token* tokens;
-  struct Parser parser;
-  tokens= lexer(input);
-  parser.tokens = tokens;
-  parser.curPos = 0;
 
-  while (peak(&parser).type != END_LINE){
-    parser.ast = parse(&parser);
+
+int interpret(char* input,int* res){
+  struct Parser parser;
+  parser.curPos = 0;
+  while (peek(&parser,input).type != END_LINE){
+    parser.ast = parse(&parser,input);
     int status = eval(parser.ast, res);
     if (status !=0){
       fprintf(stderr,"\nSemantic Error\n");
@@ -29,7 +27,6 @@ int interpret(char* input,int* res){
       printf("%d\n",*res);
     }
   }
-  freeTokens(parser.tokens);
   freeNode(parser.ast);
 
   return 0;

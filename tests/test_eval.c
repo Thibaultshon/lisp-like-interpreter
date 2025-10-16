@@ -6,7 +6,6 @@
 #include "parser.h"
 #include "eval.h"
 
-struct Token* tokens;
 struct Parser parser;
 
 
@@ -15,7 +14,6 @@ void setUp(){
 }
 
 void tearDown(){
-  freeTokens(parser.tokens);
   freeNode(parser.ast);
   freeEnv();
 }
@@ -23,11 +21,10 @@ void tearDown(){
 
 int interpret(char* input){
   int result;
-  tokens= lexer(input);
-  parser.tokens = tokens;
+  g_env = NULL;
   parser.curPos = 0;
-  while (peak(&parser).type != END_LINE){
-    parser.ast = parse(&parser);
+  while (peek(&parser,input).type != END_LINE){
+    parser.ast = parse(&parser,input);
     eval(parser.ast, &result);
   }
   return result;
@@ -146,30 +143,23 @@ void testRelationalOperators(){
 
 void testNewFeature(){
   //// to implement
-  char input[] = "";
 
+  char input[]= "(:= x 4)";
   printf("\ninput:\n%s\n\n",input);
+  
 
-  /////Lex
-  tokens = lexer(input);
-  printf("tokens:\n");
-  for (int i = 0; tokens[i].type != END_LINE ;i++){
-    printf("%s ", enumToString(tokens[i].type));
-
-  }
   int result;
   int err;
-  parser.tokens = tokens;
+
   parser.curPos = 0;
-  while (peak(&parser).type != END_LINE){
+  while (peek(&parser,input).type != END_LINE){
     //////Parse
     printf("\n\nParser:\n");
-    parser.ast = parse(&parser);
+    parser.ast = parse(&parser,input);
     printNode(parser.ast);
     printf("\n");
-
     
-    /////Eval
+    ////    Eval
     printf("\nSemantics:\n");
     err = eval(parser.ast, &result);
     printf("error status: %d\n", err);

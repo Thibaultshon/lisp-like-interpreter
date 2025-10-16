@@ -1,9 +1,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdbool.h>   
+#include "tokenize.h"  
+
 struct Parser{
   int curPos;
-  struct Token* tokens;
   struct Node* ast;
 };
 
@@ -24,9 +26,10 @@ struct Node {
 };
 
 
-struct Node*  parse(struct Parser* parser);
+struct Node*  parse(struct Parser* parser, char* input);
+struct Token peek(struct Parser* parser, char* input);
 void freeNode(struct Node* node);
 void printNode(struct Node* node);
-struct Token peak(struct Parser* parser);
+
 
 #endif
