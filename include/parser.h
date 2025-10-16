@@ -6,10 +6,10 @@
 
 struct Parser{
   int curPos;
-  struct Node* ast;
+  struct Token lookAhead;
+  bool hasLookAhead;
+  int lookAheadPos;
 };
-
-
 
 
 struct Node {
@@ -26,7 +26,9 @@ struct Node {
 };
 
 
-struct Node*  parse(struct Parser* parser, char* input);
+struct Node* parse(struct Parser* parser, char* input);
+void freeParser(struct Parser* parser);
+void initParser(struct Parser* parser);
 struct Token peek(struct Parser* parser, char* input);
 void freeNode(struct Node* node);
 void printNode(struct Node* node);

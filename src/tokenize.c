@@ -70,11 +70,13 @@ void printStringToTokens(char* input){
   const size_t maxsize= strlen(input);
   struct Token* tokens = malloc(maxsize * sizeof (struct Token));
   int i = 0;
-  struct Token tok;
-  while (( tok = tokenize(input,&i)).type != END_LINE){
-    printf("%s ",enumToString(tok.type));
+  int index = 0;
+  while ((tokens[index] = tokenize(input,&i)).type != END_LINE){
+    printf("%s ",enumToString(tokens[index].type));
+    index++;
   }
-  free(tokens);
+  tokens[index].type = END_LINE;
+  freeTokens(tokens);
 }
 
 

@@ -1,3 +1,4 @@
+
 #include "../external/unity/unity.h"
 
 #include "util.h"
@@ -10,24 +11,25 @@ struct Parser parser;
 
 
 void setUp(){
-  g_env = enterEnv(NULL);
 }
 
 void tearDown(){
-  freeNode(parser.ast);
-  leaveEnv(g_env);
 }
 
 
 int interpret(char* input){
   int result;
   g_env = enterEnv(NULL);
-  parser.curPos = 0;
+  initParser(&parser);
   while (peek(&parser,input).type != END_LINE){
-    parser.ast = parse(&parser,input);
-    eval(parser.ast, &result);
+    struct Node* ast = parse(&parser,input);
+    eval(ast, &result);
+    freeNode(ast);
   }
+  freeParser(&parser);
+  g_env = leaveEnv(g_env);
   return result;
+
 }
 
 
@@ -143,34 +145,39 @@ void testRelationalOperators(){
 
 void testNewFeature(){
   //// to implement
-  char input[]= "(let ((x 2) (y 3)) x)";
+  g_env = enterEnv(NULL);
+  /* char input[]= "(let ((x 2) (y 3)) x)"; */
 
   /* char input[]= "(let ((x 2)) x)"; */
+  char input[]= "(:= x 3) x";
   /* char input[]= "(:= x 3) (+ (let ((x 2)) x) x)"; */
   printf("\ninput:\n%s\n\n",input);
   
 
-  /* int result; */
-  /* int err; */
+  int result;
+  int err;
 
   printf("\nLexer:\n");
   printStringToTokens(input);
 
-  parser.curPos = 0;
+  initParser(&parser);
   while (peek(&parser,input).type != END_LINE){
-
     //////Parse
     printf("\n\nParser:\n");
-    parser.ast = parse(&parser,input);
-    printNode(parser.ast);
+    struct Node* ast = parse(&parser, input);
+    printNode(ast);
+
     printf("\n");
     
-  /*   ////    Eval */
-  /*   printf("\nSemantics:\n"); */
-  /*   err = eval(parser.ast, &result); */
-  /*   printf("error status: %d\n", err); */
-  /*   printf("result: %d\n",result); */
+    ////    Eval
+    printf("\nSemantics:\n");
+    err = eval(ast, &result);
+    freeNode(ast);
+    printf("error status: %d\n", err);
+    printf("result: %d\n",result);
   }
+  freeParser(&parser);
+  g_env = leaveEnv(g_env);
 
 }
 

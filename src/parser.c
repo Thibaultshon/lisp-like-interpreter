@@ -8,26 +8,57 @@
 
 
 
-struct Token before(struct Parser* parser,char* input);
+
 struct Token eat(struct Parser* parser, char* input);
 struct Node* createCons(struct Node* nodecar, struct  Node* nodecdr);
 struct Node* parseAtom(struct Parser* parser, char*input);
 struct Node* parseSExpression(struct Parser* parser, char* input);
 
-struct Token eat(struct Parser* parser, char* input){ 
-  struct Token cur_token = tokenize(input, &parser->curPos);
-  return cur_token;
+struct Token eat(struct Parser* parser, char* input){
+  if (parser->hasLookAhead){
+    struct Token  curToken = parser->lookAhead;
+    parser->hasLookAhead = false;
+    parser->curPos = parser->lookAheadPos;
+    parser->lookAhead.type = END_LINE; 
+    return curToken;
+  }
+  return tokenize(input, &parser->curPos);
 }
 
 struct Token peek(struct Parser* parser, char* input){
-  int cur_pos = parser->curPos;
-  return tokenize(input,&cur_pos); //todo  - maybe store prev and check if there so don't have to reread
+  if (parser->hasLookAhead){
+    return parser->lookAhead;
+  }
+  if (parser->lookAhead.type == IDENTIFIER){ // free old tokens not eaten
+    free(parser->lookAhead.name);
+    parser->lookAhead.name = NULL;
+
+  }
+  int cur_pos = parser->curPos;   // create new token and add to lookahead
+  struct Token curToken = tokenize(input,&cur_pos);
+  parser->hasLookAhead = true;
+  parser->lookAheadPos = cur_pos;
+  parser->lookAhead =curToken;
+  return curToken;
 }
-struct Token before(struct Parser* parser, char* input){
-  int prev_pos = parser->curPos -1;
-  if (prev_pos < 0) prev_pos = 0;
-  return tokenize(input,&prev_pos);
+
+
+void freeParser(struct Parser* parser){
+  if (parser->hasLookAhead && parser->lookAhead.type == IDENTIFIER){
+    if (parser->lookAhead.name != NULL){
+      free(parser->lookAhead.name);
+    }
+  }
 }
+
+void initParser(struct Parser* parser){
+  parser->curPos = 0;
+  parser->lookAhead.type = END_LINE;
+  parser->lookAhead.name = NULL;
+  parser->hasLookAhead = false;
+  parser->lookAheadPos = 0;
+}
+
 
 
 void freeNode(struct Node* node){
@@ -39,10 +70,9 @@ void freeNode(struct Node* node){
     freeNode(node->cons.cdr);
   }else{
     if (node->atom.type == IDENTIFIER){
-      free(node->atom.name);           
-    }                                 
+      free(node->atom.name);
+    }
   }
-  
   free(node);
 }
 

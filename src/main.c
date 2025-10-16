@@ -16,18 +16,21 @@
 
 int interpret(char* input,int* res){
   struct Parser parser;
-  parser.curPos = 0;
+  initParser(&parser);
   while (peek(&parser,input).type != END_LINE){
-    parser.ast = parse(&parser,input);
-    int status = eval(parser.ast, res);
+    struct Node* ast = parse(&parser,input);
+    int status = eval(ast, res);
     if (status !=0){
       fprintf(stderr,"\nSemantic Error\n");
       return status;
     }else{
       printf("%d\n",*res);
     }
+
+    freeNode(ast);
   }
-  freeNode(parser.ast);
+  freeParser(&parser);
+
 
   return 0;
 }
