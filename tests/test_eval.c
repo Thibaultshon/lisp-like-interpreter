@@ -151,8 +151,12 @@ void testNewFeature(){
   int result;
   int err;
 
+  printf("\nLexer:\n");
+  printStringToTokens(input);
+
   parser.curPos = 0;
   while (peek(&parser,input).type != END_LINE){
+
     //////Parse
     printf("\n\nParser:\n");
     parser.ast = parse(&parser,input);

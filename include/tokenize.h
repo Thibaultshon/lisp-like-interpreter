@@ -42,7 +42,7 @@ struct Token {
 };
 
 
-
+void printStringToTokens(char* input);
 
 const char* enumToString(enum TokenType type);
 

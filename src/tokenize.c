@@ -53,6 +53,32 @@ struct Token createIdentifierToken(char* string){
   return token;
 }
 
+
+void freeTokens(struct Token *tokens){
+  if (tokens == NULL) return;
+  for (int i =0; tokens[i].type != END_LINE; i++){
+    if (tokens[i].type == IDENTIFIER){
+      free(tokens[i].name);
+    }
+  }
+  free(tokens);
+}
+
+
+
+void printStringToTokens(char* input){
+  const size_t maxsize= strlen(input);
+  struct Token* tokens = malloc(maxsize * sizeof (struct Token));
+  int i = 0;
+  struct Token tok;
+  while (( tok = tokenize(input,&i)).type != END_LINE){
+    printf("%s ",enumToString(tok.type));
+  }
+  free(tokens);
+}
+
+
+
   
 const char* enumToString(enum TokenType type) {
   switch(type){
