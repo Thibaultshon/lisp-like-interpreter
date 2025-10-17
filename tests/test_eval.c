@@ -174,7 +174,11 @@ void testCallingLambdaFunctions(){
   TEST_ASSERT_EQUAL(3, res);
   res = interpret("(:= x 2) (call (lambda (y) (+ x y)) 3)");
   TEST_ASSERT_EQUAL(5, res);
+  res = interpret("(call (lambda () (+ 2 2)))");
+  TEST_ASSERT_EQUAL(4, res);
   res = interpret("(call (lambda (x) ) 5)");
+  TEST_ASSERT_EQUAL(0, res);
+  res = interpret("(call (lambda (x)() ) 1)");
   TEST_ASSERT_EQUAL(0, res);
 }
 
@@ -184,9 +188,8 @@ void testNewFeature(){
   g_env = enterEnv(NULL);
 
   char input[]= "";
-  /* char input[] = "(call (lambda ( x) ()) 1)"; */
   /* char input[] = "(call (lambda (x) (+ 2 2)) 1)"; */
-  /* char input[] = "(call (lambda (_) (+ 2 2)))"; */
+  /* char input[] = ""; */
   printf("\ninput:\n%s\n",input);
   
 
@@ -208,8 +211,10 @@ void testNewFeature(){
     err = eval(ast, &result);
     freeNode(ast);
     printf("error status: %d\n", err);
-    /* printEnvironments(g_env); */
-    printf("result: %d\n",result);
+    printf("\n\nSemantics:\n");
+    printf("\nMappings:");
+    printEnvironments(g_env);
+    printf("\nresult: %d\n",result);
   }
   freeParser(&parser);
   g_env = leaveEnv(g_env);

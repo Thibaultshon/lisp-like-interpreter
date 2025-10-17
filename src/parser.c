@@ -120,9 +120,11 @@ struct Node* parseSExpression(struct Parser* parser, char* input){
     if (peek(parser,input).type != BRACK_CLOSE ){
       bool is_head = true;
       struct Node* prev_cons;
-      while (peek(parser,input).type != BRACK_CLOSE){
+      while (peek(parser,input).type != BRACK_CLOSE){        
+        
         struct Node* cur_node = parseSExpression(parser,input);
         struct Node* cur_cons = createCons(cur_node,NULL);
+        
         if (!is_head){
           CDR(prev_cons) = cur_cons;
         }else{
@@ -130,17 +132,19 @@ struct Node* parseSExpression(struct Parser* parser, char* input){
           is_head = false;
         }
         prev_cons = cur_cons;
-
       }
       eat(parser,input); //todo - consume ) // add in if statment to check if ) otherwise throw error
 
       return head;
+    }else{
+      eat(parser,input); //add in if statment to check if ) otherwise throw error
+      return NULL; 
     }
   }
   else{
     return parseAtom(parser, input); // todo - maybe change to create atom
   }
-  return NULL; //todo - error
+  return NULL; //else error
 }
 
 
