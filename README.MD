@@ -9,11 +9,11 @@ Currently it only supports:
 - basic arithmetic operators (+ - / *)
 - basic relational operators (> < = /=)
 - basic control flow (if switch while)
+- lexical scoping (let)
 - assignment (:=)
 
 
 ## Todo
-- [ ] Add lexical scoping
 - [ ] Add lambdas
 - [ ] Add error handling
 - [ ] Read from file
@@ -73,6 +73,14 @@ Use exit() to exit the program
 7
 >> b
 7
+>> (let ((x 2)) x)
+2
+>> (:= x 4) (let ((x 2)  (y 3))) x
+4
+0
+4
+>> (let ((x 2) (y 3)) (:= y (+  1 x)) (:= x (+ 1 y)) x)
+4
 >> exit()
 ```
 

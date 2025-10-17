@@ -19,11 +19,11 @@ struct EnvFrame {
 
 
 
-void addIdentifier(struct EnvFrame* frame, struct Binding *identifier);
+void assign(struct EnvFrame* frame, char* name, int val);
 
 void deleteIdentifier(struct EnvFrame* frame,char* name);
 
-struct Binding * findIdentifier(struct EnvFrame* frame ,char* name);
+struct Binding * deref(struct EnvFrame* frame ,char* name);
 
 struct EnvFrame * enterEnv(struct EnvFrame* cur_env);
 

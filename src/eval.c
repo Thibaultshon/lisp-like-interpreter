@@ -92,7 +92,7 @@ int evalSExpression(struct Node* node, int* res){
   }else{
     enum TokenType type = node->atom.type;
     if (type == IDENTIFIER){
-      struct Binding* var = findIdentifier(g_env,node->atom.name);
+      struct Binding* var = deref(g_env,node->atom.name);
       *res = var->val;
     }else{
       *res= node->atom.val; 
@@ -156,7 +156,7 @@ int evalWhile(struct Node* node, int* res){
       evalSExpression(CAR(cur_seq),res);  
       cur_seq = CDR(cur_seq);
     }
-    if (evalSExpression(CAR(node), &pred_val) == 1) return 1;
+    if (evalSExpression(CAR(node), &pred_val) == 1) return 1; //todo - need for all evals
   }
   return 0;
 }
@@ -164,17 +164,15 @@ int evalWhile(struct Node* node, int* res){
 
 
 int evalAssign(struct Node* node, int* res){
-  char* name = CAR(node)->atom.name; //todo - check if identifier type
+  char* name = CAR(node)->atom.name; //todo - check if identifier type // todo - macro NAME
   
   int value;
   evalSExpression(CAR(CDR(node)),&value);
 
-  struct Binding* var = findIdentifier(g_env,name);
+  struct Binding* var = deref(g_env,name);
   if (var == NULL){
-    struct Binding* new_var = malloc(sizeof(struct Binding));
-    new_var->name = strdup(name);
-    new_var->val  = value;
-    addIdentifier(g_env,new_var);
+    assign(g_env,name,value);
+
   }else{
     var->val = value;
   }
@@ -183,13 +181,38 @@ int evalAssign(struct Node* node, int* res){
 
 }
 
+
+
 int evalLet(struct Node* node, int* res){
+  struct Node* param_list = CAR(node);
+  struct Node* cur_param = param_list;
+  g_env = enterEnv(g_env);  // todo - modify it when pass it in
+
+  while (cur_param != NULL){
+    struct Node* id_node = CAR(CAR(cur_param));
+    struct Node* val_node = CAR(CDR(CAR(cur_param)));
+    int val;
+    evalSExpression(val_node,&val);
+    char* name = id_node->atom.name;
+    assign(g_env,name,val);
+
+    cur_param = CDR(cur_param);
+  }
+  
+  struct Node* cur_seq=  CDR(node);
+  *res = 0;
+  while (cur_seq != NULL){
+    evalSExpression(CAR(cur_seq),res);
+
+    cur_seq = CDR(cur_seq);
+  }
+  g_env = leaveEnv(g_env);
+
   return 0;
 }
 
 
 int eval(struct Node* node, int* res){
-  // todo - backup reset res to something if not set
   return evalSExpression(node,res);
 }
 

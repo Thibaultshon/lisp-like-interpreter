@@ -143,14 +143,34 @@ void testRelationalOperators(){
 
 }
 
+void testLexicalScoping(){
+  int res;
+  res = interpret("(let ((x 2)) x)");    
+  TEST_ASSERT_EQUAL(2, res);
+  res = interpret("(let ((x 2)))");
+  TEST_ASSERT_EQUAL(0, res);
+  res = interpret("(let ((x 2) (y 3)) x)");
+  TEST_ASSERT_EQUAL(2, res);
+  res = interpret("(let ((x 2) (y 3)) y)");    
+  TEST_ASSERT_EQUAL(3, res);
+  res = interpret("(let ((x 2) (y 3)) (:= y (+  1 x)) (:= x (+ 1 y)) x)");
+  TEST_ASSERT_EQUAL(4, res);
+  res = interpret("(:= x 1) (let ((x 2)  (y 3))) x");
+  TEST_ASSERT_EQUAL(1, res);
+  res = interpret("(:= x 1)  (+ (let ((x 2)) x ) x)");    
+  TEST_ASSERT_EQUAL(3, res);
+  res = interpret("(:= x 1) (let ((x 2)) (:= x 5)) x");    
+  TEST_ASSERT_EQUAL(1, res);
+  res = interpret("(let ((x 2)) (let ((x 4)) x))");    
+  TEST_ASSERT_EQUAL(4, res);
+}
+
 void testNewFeature(){
   //// to implement
   g_env = enterEnv(NULL);
-  /* char input[]= "(let ((x 2) (y 3)) x)"; */
+  char input[]= "(let ((x 2)))";
+  /* char input[] = "(:= y 4 ) (let ((x 2)) y)"; */ // todo - add in checking parent  scopes if not in current scope
 
-  /* char input[]= "(let ((x 2)) x)"; */
-  char input[]= "(:= x 3) x";
-  /* char input[]= "(:= x 3) (+ (let ((x 2)) x) x)"; */
   printf("\ninput:\n%s\n\n",input);
   
 
@@ -163,7 +183,7 @@ void testNewFeature(){
   initParser(&parser);
   while (peek(&parser,input).type != END_LINE){
     //////Parse
-    printf("\n\nParser:\n");
+    printf("\nParser:\n");
     struct Node* ast = parse(&parser, input);
     printNode(ast);
 
@@ -181,9 +201,6 @@ void testNewFeature(){
 
 }
 
-
-
-
 int main(){
   UNITY_BEGIN();
   RUN_TEST(testArithmeticOperators);
@@ -192,6 +209,7 @@ int main(){
   RUN_TEST(testAssignStatements);
   RUN_TEST(testWhileLoop);
   RUN_TEST(testRelationalOperators);
+  RUN_TEST(testLexicalScoping);
 
   /* RUN_TEST(testNewFeature); */
   return UNITY_END();

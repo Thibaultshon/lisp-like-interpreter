@@ -5,10 +5,11 @@ struct EnvFrame * enterEnv(struct EnvFrame* cur_env){
   struct EnvFrame* new_env  = malloc(sizeof(struct EnvFrame));
   new_env->bindings = NULL;
   new_env->parent = cur_env;
+  /* cur_env = new_env; */
   return new_env;
 }
 
-struct EnvFrame * leaveEnv(struct EnvFrame* cur_env){
+struct EnvFrame* leaveEnv(struct EnvFrame* cur_env){
   struct EnvFrame* prev_env = cur_env;
   cur_env  = cur_env->parent;
   
@@ -24,13 +25,16 @@ struct EnvFrame * leaveEnv(struct EnvFrame* cur_env){
 
 
 
-void addIdentifier(struct EnvFrame* frame, struct Binding *identifier){
-  HASH_ADD_STR(frame->bindings, name,identifier);
-
+void assign(struct EnvFrame* frame, char* name, int val){
+    struct Binding* new_var = malloc(sizeof(struct Binding)); 
+    new_var->name = strdup(name);
+    new_var->val  = val;
+    HASH_ADD_STR(frame->bindings, name,new_var);
 }
 
 
-struct Binding *findIdentifier(struct EnvFrame* frame ,char* name){
+
+struct Binding* deref(struct EnvFrame* frame ,char* name){
   struct Binding *node;
   HASH_FIND_STR(frame->bindings,name,node);
   return node;
@@ -40,7 +44,7 @@ struct Binding *findIdentifier(struct EnvFrame* frame ,char* name){
 
 
 void deleteIdentifier(struct EnvFrame* frame,char* name){
-  struct Binding* identifier = findIdentifier(frame,name);
+  struct Binding* identifier = deref(frame,name);
   HASH_DEL(frame->bindings,identifier);
   if (identifier){
     free(identifier->name);
