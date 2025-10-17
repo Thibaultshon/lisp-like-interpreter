@@ -10,11 +10,15 @@ Currently it only supports:
 - basic relational operators (> < = /=)
 - basic control flow (if switch while)
 - lexical scoping (let)
+- anonymous function (lambda call)
 - assignment (:=)
 
 
 ## Todo
-- [ ] Add lambdas
+- [x] while statements
+- [x] lexical scoping
+- [x] lambdas
+- [ ] Named functions
 - [ ] Add error handling
 - [ ] Read from file
 
@@ -81,6 +85,11 @@ Use exit() to exit the program
 4
 >> (let ((x 2) (y 3)) (:= y (+  1 x)) (:= x (+ 1 y)) x)
 4
+>> (call (lambda (x y) (+ x y)) 1 2)
+3
+>> (:= x 2) (call (lambda (y) (+ x y)) 3)
+2
+5
 >> exit()
 ```
 

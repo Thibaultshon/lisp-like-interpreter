@@ -6,7 +6,7 @@
 
 struct Binding {
   char *name;
-  int val;
+  int val; //todo - change to result
   UT_hash_handle hh;
 };
 
@@ -29,5 +29,5 @@ struct EnvFrame * enterEnv(struct EnvFrame* cur_env);
 
 struct EnvFrame * leaveEnv(struct EnvFrame* cur_env);
 
-
+void printEnvironments(struct EnvFrame* g_env);
 #endif

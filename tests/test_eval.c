@@ -167,35 +167,48 @@ void testLexicalScoping(){
   TEST_ASSERT_EQUAL(5, res);
 }
 
+
+void testCallingLambdaFunctions(){
+  int res;
+  res = interpret("(call (lambda (x y) (+ x y)) 1 2)");    
+  TEST_ASSERT_EQUAL(3, res);
+  res = interpret("(:= x 2) (call (lambda (y) (+ x y)) 3)");
+  TEST_ASSERT_EQUAL(5, res);
+  res = interpret("(call (lambda (x) ) 5)");
+  TEST_ASSERT_EQUAL(0, res);
+}
+
+
 void testNewFeature(){
   //// to implement
   g_env = enterEnv(NULL);
-  /* char input[]= "(let ((x 2)))"; */
-  char input[] = "(:= y 4 ) (let ((x 2)) y)"; // todo - add in checking parent  scopes if not in current scope
 
-  printf("\ninput:\n%s\n\n",input);
+  char input[]= "";
+  /* char input[] = "(call (lambda ( x) ()) 1)"; */
+  /* char input[] = "(call (lambda (x) (+ 2 2)) 1)"; */
+  /* char input[] = "(call (lambda (_) (+ 2 2)))"; */
+  printf("\ninput:\n%s\n",input);
   
 
   int result;
   int err;
 
-  printf("\nLexer:\n");
+  printf("\n\nLexer:\n");
   printStringToTokens(input);
 
   initParser(&parser);
   while (peek(&parser,input).type != END_LINE){
-    //////Parse
-    printf("\nParser:\n");
+           /* Parse */
+    printf("\n\nParser:\n");
     struct Node* ast = parse(&parser, input);
     printNode(ast);
 
-    printf("\n");
-    
-    ////    Eval
-    printf("\nSemantics:\n");
+          /* Eval */
+    printf("\n\nSemantics:\n");
     err = eval(ast, &result);
     freeNode(ast);
     printf("error status: %d\n", err);
+    /* printEnvironments(g_env); */
     printf("result: %d\n",result);
   }
   freeParser(&parser);
@@ -212,6 +225,7 @@ int main(){
   RUN_TEST(testWhileLoop);
   RUN_TEST(testRelationalOperators);
   RUN_TEST(testLexicalScoping);
+  RUN_TEST(testCallingLambdaFunctions);
 
   /* RUN_TEST(testNewFeature); */
   return UNITY_END();

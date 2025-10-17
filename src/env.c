@@ -1,5 +1,7 @@
 #include <stddef.h>
+#include <stdio.h>
 #include "env.h"
+
 
 struct EnvFrame * enterEnv(struct EnvFrame* cur_env){
   struct EnvFrame* new_env  = malloc(sizeof(struct EnvFrame));
@@ -25,10 +27,14 @@ struct EnvFrame* leaveEnv(struct EnvFrame* cur_env){
 
 
 
+
+
+
 void assign(struct EnvFrame* frame, char* name, int val){
+    // todo - check if already in any scopes above including current scope
     struct Binding* new_var = malloc(sizeof(struct Binding)); 
     new_var->name = strdup(name);
-    new_var->val  = val;
+    new_var->val  = val; //todo - assign ready set variables outside of current scope
     HASH_ADD_STR(frame->bindings, name,new_var);
 }
 
@@ -57,3 +63,25 @@ void deleteIdentifier(struct EnvFrame* frame,char* name){
 }
 
 
+void printEnvironments(struct EnvFrame* env){
+  struct EnvFrame* cur_env =  env;
+  struct Binding* tmp;
+  printf("\n[");
+  while (cur_env != NULL){
+    printf("[");
+    for(tmp=cur_env->bindings; tmp!=NULL; tmp= (struct Binding*)(tmp->hh.next)){
+      printf("(%s = %d) ",tmp->name,tmp->val);
+    }
+    printf("] ");
+
+    cur_env = cur_env->parent; //todo - reverse order
+
+  }
+  printf("]\n");
+}
+
+
+
+
+
+//todo - print enviroment and comp environmemtn functions using iteration macro
