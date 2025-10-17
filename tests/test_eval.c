@@ -163,13 +163,15 @@ void testLexicalScoping(){
   TEST_ASSERT_EQUAL(1, res);
   res = interpret("(let ((x 2)) (let ((x 4)) x))");    
   TEST_ASSERT_EQUAL(4, res);
+  res = interpret("(:= y 5 ) (let ((x 2)) y)");
+  TEST_ASSERT_EQUAL(5, res);
 }
 
 void testNewFeature(){
   //// to implement
   g_env = enterEnv(NULL);
-  char input[]= "(let ((x 2)))";
-  /* char input[] = "(:= y 4 ) (let ((x 2)) y)"; */ // todo - add in checking parent  scopes if not in current scope
+  /* char input[]= "(let ((x 2)))"; */
+  char input[] = "(:= y 4 ) (let ((x 2)) y)"; // todo - add in checking parent  scopes if not in current scope
 
   printf("\ninput:\n%s\n\n",input);
   

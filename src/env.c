@@ -35,8 +35,12 @@ void assign(struct EnvFrame* frame, char* name, int val){
 
 
 struct Binding* deref(struct EnvFrame* frame ,char* name){
-  struct Binding *node;
-  HASH_FIND_STR(frame->bindings,name,node);
+  struct Binding *node = NULL;
+  struct EnvFrame* cur_frame = frame; // todo - return error if not found
+  while (cur_frame != NULL && node== NULL){
+    HASH_FIND_STR(cur_frame->bindings,name,node);
+    cur_frame = cur_frame->parent;
+  }
   return node;
 }
 
