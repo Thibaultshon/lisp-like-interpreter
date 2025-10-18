@@ -22,7 +22,9 @@ enum TokenType {
   ASSIGN,
   LET,
   LAMBDA,
+  DEF,
   CALL,
+
 
   IF,
   WHILE,

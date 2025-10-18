@@ -7,36 +7,34 @@
 #include "tokenize.h"
 #include "eval.h"
 
-
+int eval(struct Node* node, int* res);
+int evalSExpression(struct Node* node, struct Result* res);
 int evalIF(struct Node* node, struct Result* res);
 int evalSwitch(struct Node* node, struct Result* res);
 int evalWhile(struct Node* node, struct Result* res);
 int evalAssign(struct Node* node, struct Result* res);
-int evalSExpression(struct Node* node, struct Result* res);
+int evalSeq(struct Node* seq, struct Result* res);
 int evalLet(struct Node* node, struct Result* res);
 int evalCallLambda(struct Node* eval_lambda_node, struct Result* res);
 int evalSeq(struct Node* seq, struct Result* res);
+int evalDefFunction(struct Node* seq, struct Result* res);
+
+void resultSetInt(struct Result* res, int value);
+int resultGetInt(struct Result* res);
+void resultSetList(struct Result* res, struct Node* list);
+struct Node* resultGetList(struct Result* res);
 
 struct EnvFrame* g_env = NULL;
 
 
-void resultSetInt(struct Result* res, int value){
-  res->type = INT_TYPE;
-  res->int_val = value;
-}
-int resultGetInt(struct Result* res){
-  //todo - add type check;
-  return  res->int_val;
-}
-
-void resultSetList(struct Result* res, struct Node* list){
-  res->type = LIST_TYPE;
-  res->list_val = list;
+int eval(struct Node* node, int* res){
+  struct Result new_res;
+  resultSetInt(&new_res,0);
+  int status = evalSExpression(node,&new_res); //todo - change to just return and receive result
+  *res = resultGetInt(&new_res);
+  return status;
 }
 
-struct Node* resultGetList(struct Result* res){
-  return  res->list_val;
-}
 
 int evalSExpression(struct Node* node, struct Result* res){
   if (node == NULL){
@@ -266,18 +264,31 @@ int evalCallLambda(struct Node* eval_lambda_node, struct Result* res){
   return 0;
 }
 
+ int evalDefFunction(struct Node* seq, struct Result* res){   
 
-int eval(struct Node* node, int* res){
-  struct Result new_res;
-  resultSetInt(&new_res,0);
-  int status = evalSExpression(node,&new_res); //todo - change to just return and receive result
-  *res = resultGetInt(&new_res);
-  return status;
+   return 0;
+ }
+
+
+
+
+
+void resultSetInt(struct Result* res, int value){
+  res->type = INT_TYPE;
+  res->int_val = value;
+}
+int resultGetInt(struct Result* res){
+  //todo - add type check;
+  return  res->int_val;
 }
 
+void resultSetList(struct Result* res, struct Node* list){
+  res->type = LIST_TYPE;
+  res->list_val = list;
+}
 
+struct Node* resultGetList(struct Result* res){
+  return  res->list_val;
+}
 
-
-  
-  
 

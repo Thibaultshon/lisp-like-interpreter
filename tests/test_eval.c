@@ -1,4 +1,3 @@
-
 #include "../external/unity/unity.h"
 
 #include "util.h"
@@ -187,8 +186,15 @@ void testNewFeature(){
   //// to implement
   g_env = enterEnv(NULL);
 
-  char input[]= "";
+  /* char input[]= ""; */
   /* char input[] = "(call (lambda (x) (+ 2 2)) 1)"; */
+
+  char input[] =
+    "(def test (x)"
+    "     (+ x 1))"
+    "(call (test 3))";
+
+
   /* char input[] = ""; */
   printf("\ninput:\n%s\n",input);
   

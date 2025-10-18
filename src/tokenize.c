@@ -21,7 +21,7 @@ struct Item{
 
 
 struct Token inKeyWords (char* string){ // todo - make into proper hashtable
-  struct Item items[]   = { {"if", IF}, {"while",  WHILE},{"call",CALL}, {"let", LET},{"lambda", LAMBDA},{"switch", SWITCH}, {"case", CASE}};  // todo - move assign to case
+  struct Item items[]   = { {"if", IF}, {"while",  WHILE},{"def",DEF},{"call",CALL}, {"let", LET},{"lambda", LAMBDA},{"switch", SWITCH}, {"case", CASE}};  // todo - move assign to case
   size_t length  = sizeof(items)/sizeof(items[0]); 
   struct Token new_token;
   for (int i =0; i < length;i++){
@@ -128,6 +128,8 @@ const char* enumToString(enum TokenType type) {
     return "let";
   case LAMBDA:
     return "lambda";
+  case DEF:
+    return "def";
   case CALL:
     return "call";
   default:
