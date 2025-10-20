@@ -6,7 +6,7 @@
 
 struct Binding {
   char *name;
-  int val; //todo - change to result
+  struct Result* res; 
   UT_hash_handle hh;
 };
 
@@ -18,8 +18,7 @@ struct EnvFrame {
 
 
 
-
-void assign(struct EnvFrame* frame, char* name, int val);
+void assign(struct EnvFrame* frame, char* name, struct Result* res); //todo - maybe spereate functions as well assign int etc;
 
 void deleteIdentifier(struct EnvFrame* frame,char* name);
 

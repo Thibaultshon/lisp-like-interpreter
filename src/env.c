@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include "env.h"
+#include "eval.h"
 
 
 struct EnvFrame * enterEnv(struct EnvFrame* cur_env){
@@ -19,6 +20,7 @@ struct EnvFrame* leaveEnv(struct EnvFrame* cur_env){
   HASH_ITER(hh,prev_env->bindings,cur, tmp){
     HASH_DEL(prev_env->bindings,cur);
     free(cur->name);
+    free(cur->res); 
     free(cur);
   }
   free(prev_env);
@@ -26,11 +28,11 @@ struct EnvFrame* leaveEnv(struct EnvFrame* cur_env){
 }
 
 
-void assign(struct EnvFrame* frame, char* name, int val){
+void assign(struct EnvFrame* frame, char* name, struct Result* res){
     // todo - check if already in any scopes above including current scope
     struct Binding* new_var = malloc(sizeof(struct Binding)); 
     new_var->name = strdup(name);
-    new_var->val  = val; //todo - assign ready set variables outside of current scope
+    new_var->res  = res; //todo - assign ready set variables outside of current scope
     HASH_ADD_STR(frame->bindings, name,new_var);
 }
 
@@ -51,6 +53,7 @@ void deleteIdentifier(struct EnvFrame* frame,char* name){
   HASH_DEL(frame->bindings,identifier);
   if (identifier){
     free(identifier->name);
+    free(identifier->res);
     free(identifier);
   }
 }
@@ -63,7 +66,22 @@ void printEnvironments(struct EnvFrame* env){
   while (cur_env != NULL){
     printf("[");
     for(tmp=cur_env->bindings; tmp!=NULL; tmp= (struct Binding*)(tmp->hh.next)){
-      printf("(%s = %d) ",tmp->name,tmp->val);
+      
+      switch(tmp->res->type)
+        {
+        case NODE_NUM:
+          printf("(%s = %d) ",tmp->name,tmp->res->int_val);
+          break;
+        case NODE_LAMBDA:
+          printf("(%s = ",tmp->name);
+          /* printNode(tmp->res->list_val); */
+          printf(") ");
+          break;
+        case NODE_KEYWORD:
+        case NODE_SYMBOL:
+          printf("(%s = %s) ",tmp->name,tmp->res->symbol_val);
+          break;
+        }
     }
     printf("] ");
 

@@ -10,7 +10,8 @@ Currently it only supports:
 - basic relational operators (> < = /=)
 - basic control flow (if switch while)
 - lexical scoping (let)
-- anonymous function (lambda call)
+- anonymous functions (lambda)
+- named functions (def)
 - assignment (:=)
 
 
@@ -85,11 +86,19 @@ Use exit() to exit the program
 4
 >> (let ((x 2) (y 3)) (:= y (+  1 x)) (:= x (+ 1 y)) x)
 4
->> (call (lambda (x y) (+ x y)) 1 2)
+>> ((lambda (x y) (+ x y)) 1 2)
 3
->> (:= x 2) (call (lambda (y) (+ x y)) 3)
+>> (:= x 2) ((lambda (y) (+ x y)) 3)
 2
 5
+>> (def plusOne (x) (+ x 1))
+plusOne
+>> (plusOne 5)
+6
+>> (def multiBody (x y ) (:= x (+ x y))   (:= y (+ y x)))
+multiBody
+>> (multiBody (plusOne 2) 6)
+15
 >> exit()
 ```
 

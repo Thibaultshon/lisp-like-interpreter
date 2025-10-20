@@ -12,11 +12,15 @@
 #include "parser.h"
 #include "eval.h"
 
+struct Node** used_nodes; //todo - temp just for now
+size_t node_count =0;
+int max_nodes = 10;
 
-
-int interpret(char* input,int* res){
+int interpret(char* input,struct Result* res){
   struct Parser parser;
   initParser(&parser);
+
+  
   while (peek(&parser,input).type != TOK_END_LINE){
     struct Node* ast = parse(&parser,input);
     int status = eval(ast, res);
@@ -24,10 +28,16 @@ int interpret(char* input,int* res){
       fprintf(stderr,"\nSemantic Error\n");
       return status;
     }else{
-      printf("%d\n",*res);
+      printResult(res);
+      printf("\n");
     }
 
-    freeNode(ast);
+    used_nodes[node_count] = ast;
+    node_count++;
+    if (node_count > max_nodes){
+      max_nodes +=10; 
+      used_nodes = realloc(used_nodes,max_nodes*sizeof(**used_nodes));
+    }
   }
   freeParser(&parser);
 
@@ -38,8 +48,13 @@ int interpret(char* input,int* res){
 int repl(){
   printf("Starting REPL:\n");
   printf("Use exit() to exit the program \n");
-  int res;
+  struct Result res;
   g_env = enterEnv(NULL);
+
+  max_nodes = 10;
+  node_count =0; 
+  used_nodes = malloc(max_nodes*sizeof(*used_nodes));
+  
   while(1){
     printf(">> ");
     char input[1024];
@@ -53,6 +68,11 @@ int repl(){
     }
 
   }
+
+  for (int i =0; i <node_count;i++){
+    freeNode(used_nodes[i]);
+  }
+  free(used_nodes);
   leaveEnv(g_env);
   return 0;
 }
