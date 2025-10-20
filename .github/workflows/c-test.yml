@@ -1,0 +1,21 @@
+name: C build & test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make dirs
+      run: mkdir -p build build/tests bin
+    - name: make
+      run: make
+    - name: make tests
+      run: make tests

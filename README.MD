@@ -16,12 +16,13 @@ Currently it only supports:
 
 
 ## Todo
+- [ ] Add error handling
+- [ ] Read from file
 - [x] while statements
 - [x] lexical scoping
 - [x] lambdas
-- [ ] Named functions
-- [ ] Add error handling
-- [ ] Read from file
+- [x] Named functions
+
 
 
 

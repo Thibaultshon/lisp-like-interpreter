@@ -16,7 +16,6 @@ int evalIF(struct Node* node, struct Result* res);
 int evalSwitch(struct Node* node, struct Result* res);
 int evalWhile(struct Node* node, struct Result* res);
 int evalAssign(struct Node* node, struct Result* res);
-int evalSeq(struct Node* seq, struct Result* res);
 int evalLet(struct Node* node, struct Result* res);
 int evalCallLambda(struct Node* lambda_node,struct Node* args_node, struct Result* res);
 int evalLambda(struct Node* lambda_node, struct Result* res);
@@ -85,8 +84,10 @@ int evalCons(struct Node* node, struct Result* res){
   switch (car_result.type)
     {
     case NODE_LAMBDA:
+      {
       struct Node* args = CDR(node);
       return evalCallLambda(resultGetLambda(&car_result), args,res);
+      }
 
     case NODE_KEYWORD:
       symbol = resultGetKeyword(&car_result);
