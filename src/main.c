@@ -17,7 +17,7 @@
 int interpret(char* input,int* res){
   struct Parser parser;
   initParser(&parser);
-  while (peek(&parser,input).type != END_LINE){
+  while (peek(&parser,input).type != TOK_END_LINE){
     struct Node* ast = parse(&parser,input);
     int status = eval(ast, res);
     if (status !=0){

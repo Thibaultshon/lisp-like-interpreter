@@ -4,7 +4,7 @@
 
 
 struct EnvFrame * enterEnv(struct EnvFrame* cur_env){
-  struct EnvFrame* new_env  = malloc(sizeof(struct EnvFrame));
+  struct EnvFrame* new_env  = malloc(sizeof(*new_env));
   new_env->bindings = NULL;
   new_env->parent = cur_env;
   /* cur_env = new_env; */
@@ -26,10 +26,6 @@ struct EnvFrame* leaveEnv(struct EnvFrame* cur_env){
 }
 
 
-
-
-
-
 void assign(struct EnvFrame* frame, char* name, int val){
     // todo - check if already in any scopes above including current scope
     struct Binding* new_var = malloc(sizeof(struct Binding)); 
@@ -37,7 +33,6 @@ void assign(struct EnvFrame* frame, char* name, int val){
     new_var->val  = val; //todo - assign ready set variables outside of current scope
     HASH_ADD_STR(frame->bindings, name,new_var);
 }
-
 
 
 struct Binding* deref(struct EnvFrame* frame ,char* name){
@@ -49,8 +44,6 @@ struct Binding* deref(struct EnvFrame* frame ,char* name){
   }
   return node;
 }
-
-
 
 
 void deleteIdentifier(struct EnvFrame* frame,char* name){
@@ -79,9 +72,6 @@ void printEnvironments(struct EnvFrame* env){
   }
   printf("]\n");
 }
-
-
-
 
 
 //todo - print enviroment and comp environmemtn functions using iteration macro

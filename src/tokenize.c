@@ -4,13 +4,22 @@
 #include <stdbool.h>
 #include <string.h> 
 
+
 #include "util.h"
 #include "tokenize.h"
+
 
 #define MAXTOKENS 100
 
 
-
+struct Token inKeyWords (char* string);
+struct Token createToken(enum TokenType type,char* symbol);
+struct Token createIntToken(int num);
+struct Token createIdentifierToken(char* string);
+void freeTokens(struct Token *tokens);
+void printStringToTokens(char* input);
+const char* enumToString(enum TokenType type);
+struct Token tokenize  (char* input, int* i);
 
 
 struct Item{
@@ -19,165 +28,44 @@ struct Item{
 };
 
 
-
-struct Token inKeyWords (char* string){ // todo - make into proper hashtable
-  struct Item items[]   = { {"if", IF}, {"while",  WHILE},{"def",DEF},{"call",CALL}, {"let", LET},{"lambda", LAMBDA},{"switch", SWITCH}, {"case", CASE}};  // todo - move assign to case
-  size_t length  = sizeof(items)/sizeof(items[0]); 
-  struct Token new_token;
-  for (int i =0; i < length;i++){
-    if  (strcmp(items[i].name,string)==0){
-      new_token.type = items[i].token;
-      return new_token;
-    }
-  };
-  new_token.type = INVALID;
-  return new_token;
-}
-
-struct Token createOpToken(enum TokenType type){
-  struct Token token;
-  token.type = type;
-  return token;
-}
-struct Token createIntToken(int val){
-  struct Token token;
-  token.type = NUM;
-  token.val = val;
-  return token;
-}
-
-struct Token createIdentifierToken(char* string){
-  struct Token token;
-  token.type = IDENTIFIER;
-  token.name = strdup(string);
-  return token;
-}
-
-
-void freeTokens(struct Token *tokens){
-  if (tokens == NULL) return;
-  for (int i =0; tokens[i].type != END_LINE; i++){
-    if (tokens[i].type == IDENTIFIER){
-      free(tokens[i].name);
-    }
-  }
-  free(tokens);
-}
-
-
-
-void printStringToTokens(char* input){
-  const size_t maxsize= strlen(input);
-  struct Token* tokens = malloc(maxsize * sizeof (struct Token));
-  int i = 0;
-  int index = 0;
-  while ((tokens[index] = tokenize(input,&i)).type != END_LINE){
-    printf("%s ",enumToString(tokens[index].type));
-    index++;
-  }
-  tokens[index].type = END_LINE;
-  freeTokens(tokens);
-}
-
-
-
-  
-const char* enumToString(enum TokenType type) {
-  switch(type){
-  case NUM:
-    return "num";
-  case STRING:
-    return "string";
-  case IDENTIFIER:
-    return "identifier";
-  case ASSIGN:
-    return "assign";
-  case BRACK_OPEN:
-    return "(";
-  case BRACK_CLOSE:
-    return ")";
-  case EQ:
-    return "=";
-  case NEQ:
-    return "/=";
-  case GT:
-    return ">";
-  case LT:
-    return "<";
-  case ADD:
-    return "+";
-  case SUB:
-    return "-";
-  case DIV:
-    return "/";
-  case MUL:
-    return "*";
-  case END_LINE:
-    return "end line";
-  case IF:
-    return "if";
-  case WHILE:
-    return "while";
-  case SWITCH:
-    return "switch";
-  case CASE:
-    return "CASE";
-  case INVALID:
-    return "INVALID";
-  case LET:
-    return "let";
-  case LAMBDA:
-    return "lambda";
-  case DEF:
-    return "def";
-  case CALL:
-    return "call";
-  default:
-    return "ERROR";
-
-  }
-}
-
-
-
-
 struct Token tokenize  (char* input, int* i){
   while (isspace(input[*i])) (*i)++;
-  if (input[*i]== '\0') return createOpToken(END_LINE);
+  if (input[*i]== '\0') return createToken(TOK_END_LINE,NULL);
 
   char c =  input[*i];
   (*i)++;
+
   
   switch (c){
   case '+':
-    return createOpToken(ADD);
+    return createToken(TOK_OP,"+");
   case '-':
-    return createOpToken(SUB);
+    return createToken(TOK_OP,"-");
   case '/':
     if (input[*i] == '='){
       c = input[(*i)++];
-      return  createOpToken(NEQ);
+      return  createToken(TOK_OP,"/=");
     }
-    return createOpToken(DIV);
+    return createToken(TOK_OP,"/");
   case '*':
-    return createOpToken(MUL);
+    return createToken(TOK_OP,"*");
   case '>':
-    return createOpToken(GT);
+    return createToken(TOK_OP,">");
     break;
   case '<':
-    return createOpToken(LT);
+    return createToken(TOK_OP,"<");
   case '(':
-    return createOpToken(BRACK_OPEN);
+    return createToken(TOK_BRACK_OPEN,"(");
   case ')':
-    return createOpToken(BRACK_CLOSE);
+    return createToken(TOK_BRACK_CLOSE,")");
   case ':':
     if (input[*i] == '='){
       c = input[(*i)++];
-      return  createOpToken(ASSIGN);
+      return  createToken(TOK_OP, ":=");
     }
-    return createOpToken(INVALID);
+    return createToken(TOK_INVALID,NULL);
   case '=' :
-    return createOpToken(EQ);
+    return createToken(TOK_OP,"=");
   default:
     if (isdigit(c)){ 
       char *end;
@@ -187,7 +75,7 @@ struct Token tokenize  (char* input, int* i){
       return createIntToken(val);
     }
       
-    else if (isalpha(c)){ /// is laphanum
+    else if (isalpha(c)){ 
         struct Token token;
         char *start= &input[(*i)-1];
         char* end = start;
@@ -202,7 +90,7 @@ struct Token tokenize  (char* input, int* i){
         *i = (int)(end - input);
 
         token = inKeyWords(result);
-        if (token.type == INVALID){
+        if (token.type == TOK_INVALID){
           token  = createIdentifierToken(result);
         }
         free(result);
@@ -210,10 +98,100 @@ struct Token tokenize  (char* input, int* i){
 
       }else{
       
-      return createOpToken(INVALID);
+      return createToken(TOK_INVALID,NULL);
       
     }
   }
 }
+
+
+struct Token inKeyWords (char* string){ // todo - make into proper hashtable and get rid of TOK_OP assume all TOK_OP
+  struct Item items[]   = { {"if", TOK_OP}, {"while",  TOK_OP},{"def",TOK_OP},{"call",TOK_OP}, {"let", TOK_OP},{"lambda", TOK_OP},{"switch", TOK_OP}, {"case", TOK_OP}};  // todo - move assign to case
+  size_t length  = sizeof(items)/sizeof(items[0]); 
+  struct Token new_token;
+  for (int i =0; i < length;i++){
+    if  (strcmp(items[i].name,string)==0){
+      return createToken(TOK_OP,items[i].name);
+    }
+  };
+  new_token.type = TOK_INVALID;
+  new_token.name = NULL;
+  return new_token;
+}
+
+
+struct Token createToken(enum TokenType type,char* symbol){
+  struct Token token;
+  token.type = type;
+  token.name = (symbol != NULL) ? strdup(symbol) : NULL;
+  return token;
+}
+
+
+struct Token createIntToken(int num){
+  struct Token token;
+  token.type = TOK_NUM;
+  token.num = num;
+  return token;
+}
+
+
+struct Token createIdentifierToken(char* string){
+  struct Token token;
+  token.type = TOK_IDENTIFIER;
+  token.name = strdup(string);
+  return token;
+}
+
+
+void freeTokens(struct Token *tokens){
+  if (tokens == NULL) return;
+  for (int i =0; tokens[i].type != TOK_END_LINE; i++){
+    if (tokenContainsString(&tokens[i])){
+      free(tokens[i].name);
+    }
+  }
+}
+
+
+void printStringToTokens(char* input){
+  const size_t max_size= strlen(input);
+  struct  Token* tokens = malloc(max_size *sizeof(*tokens));  
+  int i = 0;
+  int index = 0;
+  while ((tokens[index] = tokenize(input,&i)).type != TOK_END_LINE){
+    printf("%s ",enumToString(tokens[index].type));
+    index++;
+  }
+  tokens[index].type = TOK_END_LINE;
+  freeTokens(tokens);
+}
+
+
+const char* enumToString(enum TokenType type) {  //todo // maybe just print out name
+  switch(type){
+  case TOK_NUM:
+    return "NUM";
+  case TOK_STRING:
+    return "STRING";
+  case  TOK_BRACK_OPEN:
+    return "(";
+  case   TOK_BRACK_CLOSE:
+    return ")";
+  case   TOK_OP:
+    return "OPERATION";
+  case   TOK_IDENTIFIER:
+    return "ID";
+  case TOK_END_LINE:
+    return "END LINE";
+  case TOK_INVALID:
+    return "INVALID";
+  default:
+    return "ERROR";
+
+  }
+}
+
+
 
 

@@ -19,13 +19,16 @@ void tearDown(){
 int interpret(char* input){
   int result;
   g_env = enterEnv(NULL);
-  initParser(&parser);
-  while (peek(&parser,input).type != END_LINE){
+    initParser(&parser);
+  while (peek(&parser,input).type != TOK_END_LINE){
+
     struct Node* ast = parse(&parser,input);
+
     eval(ast, &result);
     freeNode(ast);
+
   }
-  freeParser(&parser);
+    freeParser(&parser);
   g_env = leaveEnv(g_env);
   return result;
 
@@ -188,44 +191,51 @@ void testNewFeature(){
 
   /* char input[]= ""; */
   /* char input[] = "(call (lambda (x) (+ 2 2)) 1)"; */
+  /* char input[] = "((lambda (x) (+ x 2)) 1)"; */
+  /* char input[] = "(:= x 1)  (+ (let ((x 2)) x ) x)"; */
+  /* char input[] ="(:= x 1) (:= y 3) (while x (:= y (+ y 1)) (:= x 0))  y"; */
+  /* char input[] ="(+ 1 2 3 4 5 */
 
-  char input[] =
-    "(def test (x)"
-    "     (+ x 1))"
-    "(call (test 3))";
+  char input[] = "(call (lambda (x y) (+ x y)) 1 2)";
+
+  /* char input[] = */
+    /* "(def test (x)" */
+    /* "     (+ x 1))" */
+    /* "(test 3)"; */
 
 
   /* char input[] = ""; */
   printf("\ninput:\n%s\n",input);
   
-
-  int result;
-  int err;
-
   printf("\n\nLexer:\n");
   printStringToTokens(input);
 
   initParser(&parser);
-  while (peek(&parser,input).type != END_LINE){
+  while (peek(&parser,input).type != TOK_END_LINE){
            /* Parse */
+
+
     printf("\n\nParser:\n");
     struct Node* ast = parse(&parser, input);
     printNode(ast);
-
+    
           /* Eval */
     printf("\n\nSemantics:\n");
+    int result;
+    int err;
     err = eval(ast, &result);
-    freeNode(ast);
+    printf("now");
     printf("error status: %d\n", err);
-    printf("\n\nSemantics:\n");
     printf("\nMappings:");
-    printEnvironments(g_env);
+    /* printEnvironments(g_env); */
     printf("\nresult: %d\n",result);
+    freeNode(ast);
   }
   freeParser(&parser);
   g_env = leaveEnv(g_env);
 
 }
+
 
 int main(){
   UNITY_BEGIN();
@@ -237,7 +247,6 @@ int main(){
   RUN_TEST(testRelationalOperators);
   RUN_TEST(testLexicalScoping);
   RUN_TEST(testCallingLambdaFunctions);
-
   /* RUN_TEST(testNewFeature); */
   return UNITY_END();
 }

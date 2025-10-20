@@ -1,50 +1,36 @@
 #ifndef TOKENIZE_H
 #define TOKENIZE_H
 
+#include <stdbool.h>   
+
 enum TokenType {
-  NUM,
-  STRING,
-  BRACK_OPEN,
-  BRACK_CLOSE,
-  ADD,
-  SUB,
-  DIV,
-  MUL,
-
-  GT,
-  LT,
-  NEQ,
-  EQ,
-
-  SWITCH,
-  CASE,
-  
-  ASSIGN,
-  LET,
-  LAMBDA,
-  DEF,
-  CALL,
-
-
-  IF,
-  WHILE,
-
-  IDENTIFIER,
-
-  INVALID,
-  END_LINE
+  TOK_NUM,
+  TOK_STRING,
+  TOK_BRACK_OPEN,
+  TOK_BRACK_CLOSE,
+  TOK_OP,
+  TOK_IDENTIFIER,
+  TOK_INVALID,
+  TOK_END_LINE
 };
-
-
 
 
 struct Token {
   enum TokenType type;
   union {
-    int val;
+    int num;
     char* name;
   };
 };
+
+
+static inline bool tokenContainsString(struct Token* tok){
+  if (!tok)  return false;
+  return (tok->type == TOK_STRING ||
+          tok->type == TOK_OP ||
+          tok->type == TOK_IDENTIFIER) &&
+    (tok->name != NULL);
+}
 
 
 void printStringToTokens(char* input);
