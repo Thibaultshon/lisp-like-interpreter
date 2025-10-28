@@ -27,7 +27,6 @@ void resultSetInt(struct Result* res, int value);
 struct Result* createIntResult(int num);
 struct Result* createLambdaResult(struct Node* lambda);
 void resultSetLambda(struct Result* res, struct Node* list);
-int resultSetKeyword(struct Result* res,char* symbol);
 char* resultSetSymbol(struct Result* res,char* symbol);
 
 
@@ -54,7 +53,7 @@ int evalSExpression(struct Node* node, struct Result* res){
     case NODE_SYMBOL:
       return evalSymbol(node,res);
     case NODE_KEYWORD:
-      resultSetKeyword(res,node->atom.symbol);
+      resultSetSymbol(res,node->atom.symbol);
       break;
     }
   return 0;
@@ -65,10 +64,10 @@ int evalSymbol(struct Node* node, struct Result* res){
   struct Binding* var = deref(g_env,node->atom.symbol);
   switch (var->res->type)
     {
-    case NODE_NUM:
+    case RESULT_INT:
       resultSetInt(res,resultGetInt(var->res));
       break;
-    case NODE_LAMBDA:
+    case RESULT_LAMBDA:
       resultSetLambda(res,resultGetLambda(var->res));
       break;
     }
@@ -83,14 +82,13 @@ int evalCons(struct Node* node, struct Result* res){
   evalSExpression(CAR(node),&car_result);
   switch (car_result.type)
     {
-    case NODE_LAMBDA:
+    case RESULT_LAMBDA:
       {
       struct Node* args = CDR(node);
       return evalCallLambda(resultGetLambda(&car_result), args,res);
       }
-
-    case NODE_KEYWORD:
-      symbol = resultGetKeyword(&car_result);
+    case RESULT_SYMBOL:
+      symbol = resultGetSymbol(&car_result);
       break;
 
     default:
@@ -174,7 +172,7 @@ int evalIF(struct Node* if_node, struct Result* res){
   struct Node* branch = CDR(node);
   struct Node* seq = CAR(branch);   //todo - if only seq provided
   struct Node* alt = CAR(CDR(branch)); // todo - error check
-  
+
   if (resultGetInt(&pred_val) != 0){
     return evalSExpression(seq,res);
 
@@ -287,18 +285,19 @@ int evalCallLambda(struct Node* lambda_node, struct Node* args_node, struct Resu
   struct Node* params = CAR(lambda_node);
   struct Node* body = CDR(lambda_node); 
   g_env = enterEnv(g_env);
-  
+
+
   while (params != NULL){ // todo - need way to check if there is an args
     char* name = CAR(params)->atom.symbol;
 
     struct Result* val_result = createIntResult(0);
 
     evalSExpression(CAR(args),val_result);
+    assign(g_env,name,val_result);
     params = CDR(params);
     args = CDR(args);
-
-    assign(g_env,name,val_result);
   }
+
   resultSetInt(res,0); // incase no body
   evalSeq(body,res);
   g_env = leaveEnv(g_env);
@@ -325,7 +324,7 @@ int evalDefFunction(struct Node* def_node, struct Result* res){
 
 
 void resultSetInt(struct Result* res, int value){
-  res->type = NODE_NUM;
+  res->type = RESULT_INT;
   res->int_val = value;
 }
 
@@ -351,7 +350,7 @@ struct Result* createLambdaResult(struct Node* lambda){
 
 
 void resultSetLambda(struct Result* res, struct Node* list){
-  res->type = NODE_LAMBDA;
+  res->type = RESULT_LAMBDA;
   res->list_val = list;
 }
 
@@ -359,18 +358,8 @@ struct Node* resultGetLambda(struct Result* res){
   return  res->list_val;
 }
 
-int resultSetKeyword(struct Result* res,char* symbol){
-  res->type = NODE_KEYWORD;
-  res->symbol_val = symbol;
-}
-
-char* resultGetKeyword(struct Result* res){
-  return  res->symbol_val;
-}
-
-
 char* resultSetSymbol(struct Result* res,char* symbol){
-  res->type = NODE_SYMBOL;
+  res->type = RESULT_SYMBOL;
   res->symbol_val = symbol;
 }
 
@@ -382,15 +371,14 @@ char* resultGetSymbol(struct Result* res){
 void printResult(struct Result* result){
   switch(result->type)
     {
-    case NODE_SYMBOL:
-    case NODE_KEYWORD:
-    case NODE_STRING:
+    case RESULT_SYMBOL:
+    case RESULT_STRING:
       printf("%s",result->symbol_val);
       break;
-    case NODE_NUM:
+    case RESULT_INT:
       printf("%d",result->int_val);
       break;
-    case NODE_LAMBDA:
+    case RESULT_LAMBDA:
       printf("(lambda)");
       /* printNodes(lambda); */
       /* break; */

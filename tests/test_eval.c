@@ -241,6 +241,12 @@ void testCallingNamedFunctions(){
      "     (:= y (+ y x)))"
      "(multiBody (plusOne 2) 6)",&res);
   TEST_ASSERT_EQUAL(15,resultGetInt(&res));
+
+
+  interpret(
+            "(def recursion (x) (if (> x 0) (recursion (:= x (- x 1))) 9))"
+            "(recursion 10)" ,&res);
+  TEST_ASSERT_EQUAL(9,resultGetInt(&res));
 }
 
 
@@ -251,9 +257,11 @@ void testNewFeature(){
   g_env = enterEnv(NULL);
 
   char input[]= "";
-  /* char input[] = "(:= x 1) (let ((x 2)) (:= x 5)) x";   */
+  /* char input[] = "(:= x 1) (let ((x 2)) (:= x 5)) x"; */
+  /* char input[] = "(def x 2) (:= x 3)"; */
+  /* char input[] = "(map (lambda (x) (+ x 2 3)) 1 2 3) impelment as macro */
   printf("\ninput:\n%s\n",input);
-  /* char input[]=  "(def recursion (x) (if (> x 0) (recursion (:= (- x 1))) x))" */
+
   /* char input[]=  "(if (= 1 1) 1)" */
   printf("\n\nLexer:\n");
   printStringToTokens(input);
@@ -275,11 +283,12 @@ void testNewFeature(){
     printf("error status: %d\n", err);
     /* printf("\nMappings:"); */
     /* printEnvironments(g_env); */
+
     printf("\nresult:");
     printResult(&result);
     printf("\n");
 
-    freeNode(ast);
+    /* freeNode(ast); */
   }
   freeParser(&parser);
   g_env = leaveEnv(g_env);

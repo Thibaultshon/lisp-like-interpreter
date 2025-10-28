@@ -4,13 +4,19 @@
 #include "parser.h"
 #include "env.h"
 
-
+enum ResultType {
+  RESULT_LAMBDA,
+  RESULT_INT,
+  RESULT_SYMBOL,
+  RESULT_STRING,
+  RESULT_ERROR
+};
 
 
 
 struct Result {
-  enum NodeType type; //todo - use on types and remove lambda type from ast
-  union { // todo - name it val?
+  enum ResultType type; 
+  union { 
     struct Node* list_val;
     int int_val;
     char* symbol_val;
