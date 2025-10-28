@@ -27,21 +27,39 @@ void resultSetInt(struct Result* res, int value);
 struct Result* createIntResult(int num);
 struct Result* createLambdaResult(struct Node* lambda);
 void resultSetLambda(struct Result* res, struct Node* list);
-char* resultSetSymbol(struct Result* res,char* symbol);
+void resultSetError(struct Result* res,char* error);
+void resultSetSymbol(struct Result* res,char* symbol);
 
 
 struct EnvFrame* g_env = NULL;
 
 
+// todo - report line error was on
+// todo - error stack list of errors as goes up 
+#define TRY(stmt)  \
+  if ((stmt)!= 0) return 1;
+
+
+/* todo - snprintf or vsnprintf for more specific reporting*/
+#define ERROR(res,error)                          \
+  do{                                             \
+    resultSetError((res),(error));                \
+    return 1;                                     \
+  }while(0)                                       
+
+
+
+
+
 int eval(struct Node* node,struct Result* res){
-  int status = evalSExpression(node,res); //todo - change to just return and receive result
-  return status;
+  return evalSExpression(node,res);
 }
 
 
 int evalSExpression(struct Node* node, struct Result* res){
   if (node == NULL){
-    return 1;  
+    resultSetInt(res,0);
+    return 0;
   } 
   switch (node->type)
     {
@@ -70,6 +88,8 @@ int evalSymbol(struct Node* node, struct Result* res){
     case RESULT_LAMBDA:
       resultSetLambda(res,resultGetLambda(var->res));
       break;
+    default:
+      ERROR(res,"ERROR: variable value not of correct type");
     }
   return 0;
 }
@@ -79,7 +99,7 @@ int evalCons(struct Node* node, struct Result* res){
   int prev;
   char* symbol;
   struct Result car_result;
-  evalSExpression(CAR(node),&car_result);
+  TRY(evalSExpression(CAR(node),&car_result));
   switch (car_result.type)
     {
     case RESULT_LAMBDA:
@@ -90,13 +110,12 @@ int evalCons(struct Node* node, struct Result* res){
     case RESULT_SYMBOL:
       symbol = resultGetSymbol(&car_result);
       break;
-
     default:
-      return 1; //error
+      ERROR(res,"ERROR: missing function at head");
     }
 
   if (strcmp(symbol, "if") == 0){
-    return evalIF(node, res); //todo - just pass node and do cdr within the actual function
+    return evalIF(node, res); 
   }
   if (strcmp(symbol, "while") ==0){
     return evalWhile(node, res);
@@ -120,7 +139,7 @@ int evalCons(struct Node* node, struct Result* res){
   }else if (strcmp(symbol, "/=") ==0 || strcmp(symbol, "=") ==0|| strcmp(symbol, ">") ==0 || strcmp(symbol, "<")==0){
     node = CDR(node);
     struct Result prev_res;
-    evalSExpression(CAR(node), &prev_res);
+    TRY(evalSExpression(CAR(node), &prev_res));
     prev = resultGetInt(&prev_res);
     resultSetInt(res,1);
     
@@ -129,10 +148,10 @@ int evalCons(struct Node* node, struct Result* res){
       
   } else if (strcmp(symbol, "/") ==0|| strcmp(symbol, "-") ==0) {
     node = CDR(node);
-    evalSExpression(CAR(node), res);
+    TRY(evalSExpression(CAR(node), res));
     
   } else{
-    return 1;
+    ERROR(res,"ERROR: no keyword with that name");
   }
 
   node = CDR(node);
@@ -167,7 +186,7 @@ int evalCons(struct Node* node, struct Result* res){
 int evalIF(struct Node* if_node, struct Result* res){
   struct Node* node = CDR(if_node);
   struct Result pred_val;                      
-  if (evalSExpression(CAR(node), &pred_val) == 1) return 1;
+  TRY(evalSExpression(CAR(node), &pred_val));
 
   struct Node* branch = CDR(node);
   struct Node* seq = CAR(branch);   //todo - if only seq provided
@@ -185,7 +204,7 @@ int evalIF(struct Node* if_node, struct Result* res){
 int evalSwitch(struct Node* switch_node, struct Result* res){
   struct Node* node = CDR(switch_node);
   struct Result switch_val;
-  evalSExpression(CAR(node),&switch_val);
+  TRY(evalSExpression(CAR(node),&switch_val));
   node = CDR(node);
   
   while (node != NULL){ // todo - or default case
@@ -193,14 +212,15 @@ int evalSwitch(struct Node* switch_node, struct Result* res){
     struct Node* case_expr = CAR(CDR(CDR(CAR(node))));
 
     struct Result case_val;
-    evalSExpression(cur_case,&case_val);
+    TRY(evalSExpression(cur_case,&case_val));
     
     if (resultGetInt(&case_val) == resultGetInt(&switch_val)){ //todo - resultCompInt
       return evalSExpression(case_expr, res);
     }
     node= CDR(node);
   }
-  return 1;
+
+  ERROR(res,"ERROR: no case matching predicate");
 }
 
 
@@ -208,16 +228,14 @@ int evalSwitch(struct Node* switch_node, struct Result* res){
 int evalWhile(struct Node* while_node, struct Result* res){
   struct Node* node = CDR(while_node);
   struct Result pred_val;                      
-  if (evalSExpression(CAR(node), &pred_val) == 1) return 1;
+  TRY(evalSExpression(CAR(node), &pred_val));
 
   struct Node* init_seq =  CDR(node);
 
   while (resultGetInt(&pred_val) != 0){
     struct Node* cur_seq  = init_seq;
-    
-    evalSeq(cur_seq,res);
-    
-    if (evalSExpression(CAR(node), &pred_val) == 1) return 1; //todo - need for all evals create macro 
+    TRY(evalSeq(cur_seq,res));
+    TRY(evalSExpression(CAR(node), &pred_val));
   }
   return 0;
 }
@@ -225,17 +243,19 @@ int evalWhile(struct Node* while_node, struct Result* res){
 
 int evalAssign(struct Node* assign_node, struct Result* res){
   struct Node* node = CDR(assign_node);
-  char* name = CAR(node)->atom.symbol; //todo - check if identifier type // todo - macro NAME
+
+  if (CAR(node)->type != NODE_SYMBOL){
+    ERROR(res,"ERROR: id not a symbol");
+  }
+  char* name =  CAR(node)->atom.symbol;
   
-  struct Result* value = createIntResult(0);
-  evalSExpression(CAR(CDR(node)),value);
+  struct Result* value = createIntResult(0); //todo - check if value of lambda or int 
+  TRY(evalSExpression(CAR(CDR(node)),value));
 
   struct Binding* var = deref(g_env,name);
   resultSetInt(res,resultGetInt(value));
   if (var == NULL){
-
     assign(g_env,name,value);
-
   }else{
     resultSetInt(var->res,resultGetInt(value));
     free(value);
@@ -255,7 +275,7 @@ int evalLet(struct Node* let_node, struct Result* res){
     struct Node* val_node = CAR(CDR(CAR(cur_param)));
 
     struct Result* val = createIntResult(0);
-    evalSExpression(val_node,val);
+    TRY(evalSExpression(val_node,val));
     char* name = id_node->atom.symbol;
     assign(g_env,name,val);
 
@@ -263,7 +283,7 @@ int evalLet(struct Node* let_node, struct Result* res){
   }
 
   resultSetInt(res,0);
-  evalSeq(CDR(node),res);
+  TRY(evalSeq(CDR(node),res));
 
   g_env = leaveEnv(g_env);
 
@@ -273,7 +293,7 @@ int evalLet(struct Node* let_node, struct Result* res){
 
 int evalSeq(struct Node* seq, struct Result* res){
   while (seq != NULL){
-    evalSExpression(CAR(seq),res);
+    TRY(evalSExpression(CAR(seq),res));
     seq = CDR(seq);
   }
   return 0;
@@ -292,14 +312,14 @@ int evalCallLambda(struct Node* lambda_node, struct Node* args_node, struct Resu
 
     struct Result* val_result = createIntResult(0);
 
-    evalSExpression(CAR(args),val_result);
+    TRY(evalSExpression(CAR(args),val_result));
     assign(g_env,name,val_result);
     params = CDR(params);
     args = CDR(args);
   }
 
   resultSetInt(res,0); // incase no body
-  evalSeq(body,res);
+  TRY(evalSeq(body,res));
   g_env = leaveEnv(g_env);
   
   return 0;
@@ -358,7 +378,7 @@ struct Node* resultGetLambda(struct Result* res){
   return  res->list_val;
 }
 
-char* resultSetSymbol(struct Result* res,char* symbol){
+void resultSetSymbol(struct Result* res,char* symbol){
   res->type = RESULT_SYMBOL;
   res->symbol_val = symbol;
 }
@@ -368,10 +388,20 @@ char* resultGetSymbol(struct Result* res){
   return  res->symbol_val;
 }
 
+void resultSetError(struct Result* res,char* error){
+  res->type = RESULT_SYMBOL;
+  res->symbol_val = error;
+}
+
+char* resultGetError(struct Result* res){
+  return  res->symbol_val;
+}
+
 void printResult(struct Result* result){
   switch(result->type)
     {
     case RESULT_SYMBOL:
+    case RESULT_ERROR:
     case RESULT_STRING:
       printf("%s",result->symbol_val);
       break;

@@ -27,9 +27,9 @@ int eval(struct Node* node, struct Result* res);
 
 void printResult(struct Result* result);
 char* resultGetSymbol(struct Result* res);
-char* resultGetKeyword(struct Result* res);
 struct Node* resultGetLambda(struct Result* res);
 int resultGetInt(struct Result* res);
+char* resultGetError(struct Result* res);
 
 extern struct EnvFrame* g_env;
 

@@ -24,13 +24,9 @@ int interpret(char* input,struct Result* res){
   while (peek(&parser,input).type != TOK_END_LINE){
     struct Node* ast = parse(&parser,input);
     int status = eval(ast, res);
-    if (status !=0){
-      fprintf(stderr,"\nSemantic Error\n");
-      return status;
-    }else{
-      printResult(res);
-      printf("\n");
-    }
+    printResult(res);
+    printf("\n");
+    
 
     used_nodes[node_count] = ast;
     node_count++;

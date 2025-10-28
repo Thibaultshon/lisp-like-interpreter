@@ -250,17 +250,36 @@ void testCallingNamedFunctions(){
 }
 
 
+void testsSemanticErrors(){
+  struct Result res;
+  interpret("(switch 1 (case 4 2) (case 3 4))", &res);
+  TEST_ASSERT_EQUAL_STRING("ERROR: no case matching predicate", resultGetError(&res));
+  interpret("(5 2)", &res);
+  TEST_ASSERT_EQUAL_STRING("ERROR: missing function at head", resultGetError(&res));
+  interpret("(:= x 2)(x 2)", &res);
+  TEST_ASSERT_EQUAL_STRING("ERROR: missing function at head", resultGetError(&res));
+  interpret("(:= 4 2)", &res);
+  TEST_ASSERT_EQUAL_STRING("ERROR: id not a symbol", resultGetError(&res));
+  /* interpret("(:= x -) x", &res); */
+  /* TEST_ASSERT_EQUAL_STRING("ERROR: variable value not of correct type", resultGetError(&res)); */
+  /* interpret("(:= x -)", &res); */
+  /* TEST_ASSERT_EQUAL_STRING("ERROR: variable value not of correct type", resultGetError(&res)); */
+}
+
 
 void testNewFeature(){
   //// to implement
   struct Parser parser;
   g_env = enterEnv(NULL);
-
   char input[]= "";
   /* char input[] = "(:= x 1) (let ((x 2)) (:= x 5)) x"; */
-  /* char input[] = "(def x 2) (:= x 3)"; */
+  /* char input[] = "(switch 1 (case 4 2) (case 3 4))"; */
+  /* char input[] = "(def x 2) (:= x 3)";
   /* char input[] = "(map (lambda (x) (+ x 2 3)) 1 2 3) impelment as macro */
+
   printf("\ninput:\n%s\n",input);
+
+  /* ## error detecting */
 
   /* char input[]=  "(if (= 1 1) 1)" */
   printf("\n\nLexer:\n");
@@ -307,6 +326,8 @@ int main(){
   RUN_TEST(testLexicalScoping);
   RUN_TEST(testCallingLambdaFunctions);
   RUN_TEST(testCallingNamedFunctions);
+  RUN_TEST(testsSemanticErrors);
+
   /* RUN_TEST(testNewFeature); */
   return UNITY_END();
 }

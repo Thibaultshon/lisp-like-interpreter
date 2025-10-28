@@ -13,6 +13,7 @@ Currently it only supports:
 - anonymous functions (lambda)
 - named functions (def)
 - assignment (:=)
+- basic semantic error checking
 
 
 ## Todo
@@ -100,6 +101,10 @@ plusOne
 multiBody
 >> (multiBody (plusOne 2) 6)
 15
+>> (switch 3 (case 1 2) (case 2 3))
+ERROR: no case matching predicate
+>> ( 1 2)
+ERROR: missing function at head
 >> exit()
 ```
 
