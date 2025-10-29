@@ -277,7 +277,7 @@ int evalLet(struct Node* let_node, struct Result* res){
     struct Result* val = createIntResult(0);
     TRY(evalSExpression(val_node,val));
     char* name = id_node->atom.symbol;
-    assign(g_env,name,val);
+    declare(g_env,name,val);
 
     cur_param = CDR(cur_param);
   }
@@ -313,7 +313,7 @@ int evalCallLambda(struct Node* lambda_node, struct Node* args_node, struct Resu
     struct Result* val_result = createIntResult(0);
 
     TRY(evalSExpression(CAR(args),val_result));
-    assign(g_env,name,val_result);
+    declare(g_env,name,val_result);
     params = CDR(params);
     args = CDR(args);
   }

@@ -171,6 +171,8 @@ void testLexicalScoping(){
   TEST_ASSERT_EQUAL(4, resultGetInt(&res));
   interpret("(:= x 1) (let ((x 2)  (y 3))) x",&res);
   TEST_ASSERT_EQUAL(1, resultGetInt(&res));
+  interpret("(:= x 1) (let ((y 2)) (:= x 5)) x",&res);
+  TEST_ASSERT_EQUAL(5, resultGetInt(&res));
   interpret("(:= x 1)  (+ (let ((x 2)) x ) x)",&res);    
   TEST_ASSERT_EQUAL(3, resultGetInt(&res));
   interpret("(:= x 1) (let ((x 2)) (:= x 5)) x",&res);    
@@ -271,12 +273,12 @@ void testNewFeature(){
   //// to implement
   struct Parser parser;
   g_env = enterEnv(NULL);
-  char input[]= "";
+  /* char input[]= ""; */
   /* char input[] = "(:= x 1) (let ((x 2)) (:= x 5)) x"; */
   /* char input[] = "(switch 1 (case 4 2) (case 3 4))"; */
   /* char input[] = "(def x 2) (:= x 3)";
   /* char input[] = "(map (lambda (x) (+ x 2 3)) 1 2 3) impelment as macro */
-
+  char input[] = "(:= x 1) (let ((x 2)  (y 3))) x";
   printf("\ninput:\n%s\n",input);
 
   /* ## error detecting */
@@ -327,7 +329,6 @@ int main(){
   RUN_TEST(testCallingLambdaFunctions);
   RUN_TEST(testCallingNamedFunctions);
   RUN_TEST(testsSemanticErrors);
-
   /* RUN_TEST(testNewFeature); */
   return UNITY_END();
 }

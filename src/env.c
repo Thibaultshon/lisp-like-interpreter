@@ -29,11 +29,27 @@ struct EnvFrame* leaveEnv(struct EnvFrame* cur_env){
 
 
 void assign(struct EnvFrame* frame, char* name, struct Result* res){
-    // todo - check if already in any scopes above including current scope
-    struct Binding* new_var = malloc(sizeof(struct Binding)); 
-    new_var->name = strdup(name);
-    new_var->res  = res; //todo - assign ready set variables outside of current scope
-    HASH_ADD_STR(frame->bindings, name,new_var);
+  struct EnvFrame* cur_frame = frame;
+  struct Binding *node = NULL;
+  while (cur_frame != NULL && node== NULL){
+    HASH_FIND_STR(cur_frame->bindings,name,node);
+    
+    if (node){
+      declare(cur_frame,name,res);
+    }
+    cur_frame = cur_frame->parent;
+  }
+
+  if (node == NULL){
+    declare(frame,name,res);
+  }
+}
+
+void declare(struct EnvFrame* frame, char*name, struct Result* res){
+  struct Binding* new_var = malloc(sizeof(struct Binding)); 
+  new_var->name = strdup(name);
+  new_var->res  = res; //todo - assign ready set variables outside of current scope
+  HASH_ADD_STR(frame->bindings, name,new_var);
 }
 
 

@@ -18,7 +18,9 @@ struct EnvFrame {
 
 
 
-void assign(struct EnvFrame* frame, char* name, struct Result* res); //todo - maybe spereate functions as well assign int etc;
+void assign(struct EnvFrame* frame, char* name, struct Result* res); 
+
+void declare(struct EnvFrame* frame, char* name, struct Result* res); 
 
 void deleteIdentifier(struct EnvFrame* frame,char* name);
 
