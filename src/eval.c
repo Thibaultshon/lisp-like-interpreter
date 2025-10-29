@@ -20,7 +20,6 @@ int evalLet(struct Node* node, struct Result* res);
 int evalCallLambda(struct Node* lambda_node,struct Node* args_node, struct Result* res);
 int evalLambda(struct Node* lambda_node, struct Result* res);
 int evalSeq(struct Node* seq, struct Result* res);
-int evalDefFunction(struct Node* seq, struct Result* res);
 
 
 void resultSetInt(struct Result* res, int value);
@@ -36,15 +35,15 @@ struct EnvFrame* g_env = NULL;
 
 // todo - report line error was on
 // todo - error stack list of errors as goes up 
-#define TRY(stmt)  \
+#define TRY(stmt)                               \
   if ((stmt)!= 0) return 1;
 
 
 /* todo - snprintf or vsnprintf for more specific reporting*/
-#define ERROR(res,error)                          \
-  do{                                             \
-    resultSetError((res),(error));                \
-    return 1;                                     \
+#define ERROR(res,error)                        \
+  do{                                           \
+    resultSetError((res),(error));              \
+    return 1;                                   \
   }while(0)                                       
 
 
@@ -104,8 +103,8 @@ int evalCons(struct Node* node, struct Result* res){
     {
     case RESULT_LAMBDA:
       {
-      struct Node* args = CDR(node);
-      return evalCallLambda(resultGetLambda(&car_result), args,res);
+        struct Node* args = CDR(node);
+        return evalCallLambda(resultGetLambda(&car_result), args,res);
       }
     case RESULT_SYMBOL:
       symbol = resultGetSymbol(&car_result);
@@ -130,10 +129,7 @@ int evalCons(struct Node* node, struct Result* res){
     return evalLet(node,res);
   }if (strcmp(symbol, "lambda") == 0){
     return evalLambda(node,res);
-  }if (strcmp(symbol, "def") == 0){
-    return evalDefFunction(node,res);
   }
-
   if (strcmp(symbol, "+") == 0){
     resultSetInt(res,0);
   }else if (strcmp(symbol, "/=") ==0 || strcmp(symbol, "=") ==0|| strcmp(symbol, ">") ==0 || strcmp(symbol, "<")==0){
@@ -249,17 +245,21 @@ int evalAssign(struct Node* assign_node, struct Result* res){
   }
   char* name =  CAR(node)->atom.symbol;
   
-  struct Result* value = createIntResult(0); //todo - check if value of lambda or int 
+  struct Result* value = createIntResult(0);
   TRY(evalSExpression(CAR(CDR(node)),value));
 
-  struct Binding* var = deref(g_env,name);
-  resultSetInt(res,resultGetInt(value));
-  if (var == NULL){
-    assign(g_env,name,value);
-  }else{
-    resultSetInt(var->res,resultGetInt(value));
-    free(value);
-  }
+  switch(value->type)
+    {
+    case RESULT_LAMBDA:
+      resultSetSymbol(res,name);
+      break;
+    case RESULT_INT:
+      resultSetInt(res,resultGetInt(value));
+      break;
+    default:
+      ERROR(res,"ERROR: enable to use value type in assignment");
+    }
+  assign(g_env, name, value);
   return 0;
 }
 
@@ -328,17 +328,6 @@ int evalCallLambda(struct Node* lambda_node, struct Node* args_node, struct Resu
 int evalLambda(struct Node* lambda_node, struct Result* res){
   resultSetLambda(res,CDR(lambda_node));
   // cdr to skip lambda part so that funcs and lambda can be called in same way
-  return 0;
- }
-
-
-int evalDefFunction(struct Node* def_node, struct Result* res){
-  struct Node* node = CDR(def_node);
-  char * name = CAR(node)->atom.symbol;
-  struct Node * lambda = CDR(CDR(def_node));
-  struct Result* lambda_node = createLambdaResult(lambda);
-  assign(g_env, name, lambda_node);
-  resultSetSymbol(res,name);
   return 0;
 }
 
@@ -410,7 +399,7 @@ void printResult(struct Result* result){
       break;
     case RESULT_LAMBDA:
       printf("(lambda)");
-      /* printNodes(lambda); */
-      /* break; */
+      /* printNode(result->list_val); */
+      break;
     }
 }

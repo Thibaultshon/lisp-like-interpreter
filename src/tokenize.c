@@ -106,7 +106,7 @@ struct Token tokenize  (char* input, int* i){
 
 
 struct Token inKeyWords (char* string){ // todo - make into proper hashtable and get rid of TOK_OP assume all TOK_OP
-  struct Item items[]   = { {"if", TOK_OP}, {"while",  TOK_OP},{"def",TOK_OP},{"call",TOK_OP}, {"let", TOK_OP},{"lambda", TOK_OP},{"switch", TOK_OP}, {"case", TOK_OP}};  // todo - move assign to case
+  struct Item items[]   = { {"if", TOK_OP}, {"while",  TOK_OP}, {"let", TOK_OP},{"lambda", TOK_OP},{"switch", TOK_OP}, {"case", TOK_OP}};  // todo - move assign to case
   size_t length  = sizeof(items)/sizeof(items[0]); 
   struct Token new_token;
   for (int i =0; i < length;i++){

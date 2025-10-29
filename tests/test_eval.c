@@ -201,52 +201,52 @@ void testCallingLambdaFunctions(){
 void testCallingNamedFunctions(){
   struct Result res;
   interpret(
-    "(def test (x)"
-    "     (+ x 1))"
+    "(:= test (lambda (x)"
+           "     (+ x 1)))"
     "(test 3)",&res);
   TEST_ASSERT_EQUAL(4,resultGetInt(&res));
   interpret(
-    "(def twoPlus3 ()"
-    "     (+ 2 3))"
+    "(:= twoPlus3 (lambda ()"
+                "     (+ 2 3)))"
     "(twoPlus3)",&res);
   TEST_ASSERT_EQUAL(5,resultGetInt(&res));
   interpret(
-     "(def test (x y )"
-     "     (+ x y))"
+     "(:= test (lambda (x y )"
+            "     (+ x y)))"
      "(test 5 6)",&res);
   TEST_ASSERT_EQUAL(11,resultGetInt(&res));
   interpret(
-    "(def test ())"
+    "(:= test (lambda ()))"
     "(test)",&res);
   TEST_ASSERT_EQUAL(0,resultGetInt(&res));
   interpret(
     "(:= y 5)"
-    "(def test (x)"
-    "    (+ x y)) "
+    "(:= test (lambda (x)"
+    "           (+ x y))) "
     "(test 3)",&res);
   TEST_ASSERT_EQUAL(8,resultGetInt(&res));
   interpret(
-    "(def double (x)"
-       "(:= x (* x 2)))"
+    "(:= double (lambda (x)"
+              "(:= x (* x 2))))"
     "(double 4)",&res);
   TEST_ASSERT_EQUAL(8,resultGetInt(&res));
   interpret(
-     "(def multiBody (x y )"
-     "     (:= x (+ x y))"
-     "     (:= y (+ y x)))"
+     "(:= multiBody (lambda (x y )"
+               "     (:= x (+ x y))"
+                "     (:= y (+ y x))))"
      "(multiBody 5 6)",&res);
   TEST_ASSERT_EQUAL(17,resultGetInt(&res));
   interpret(
-    "(def plusOne (x) (+ x 1))"
-    "(def multiBody (x y )"
-     "     (:= x (+ x y))"
-     "     (:= y (+ y x)))"
+    "(:= plusOne (lambda (x) (+ x 1)))"
+    "(:= multiBody (lambda (x y )"
+                 "     (:= x (+ x y))"
+                 "     (:= y (+ y x))))"
      "(multiBody (plusOne 2) 6)",&res);
   TEST_ASSERT_EQUAL(15,resultGetInt(&res));
 
 
   interpret(
-            "(def recursion (x) (if (> x 0) (recursion (:= x (- x 1))) 9))"
+            "(:= recursion (lambda (x) (if (> x 0) (recursion (:= x (- x 1))) 9)))"
             "(recursion 10)" ,&res);
   TEST_ASSERT_EQUAL(9,resultGetInt(&res));
 }
@@ -274,11 +274,22 @@ void testNewFeature(){
   struct Parser parser;
   g_env = enterEnv(NULL);
   /* char input[]= ""; */
+
+  /* char input[]= "(def x 2) (:= x 3) x"; */
+  char input[]=
+
+    /* "(def x 2)"; */
+
+  "(def double (x)"
+       "(:= x (* x 2)))"
+    "(double 4)";
+  
+
   /* char input[] = "(:= x 1) (let ((x 2)) (:= x 5)) x"; */
   /* char input[] = "(switch 1 (case 4 2) (case 3 4))"; */
   /* char input[] = "(def x 2) (:= x 3)";
   /* char input[] = "(map (lambda (x) (+ x 2 3)) 1 2 3) impelment as macro */
-  char input[] = "(:= x 1) (let ((x 2)  (y 3))) x";
+  /* char input[] = "(:= x 1) (let ((x 2)  (y 3))) x"; */
   printf("\ninput:\n%s\n",input);
 
   /* ## error detecting */
@@ -319,6 +330,7 @@ void testNewFeature(){
 
 int main(){
   UNITY_BEGIN();
+
   RUN_TEST(testArithmeticOperators);
   RUN_TEST(testIfStatements);
   RUN_TEST(testSwitchStatements);

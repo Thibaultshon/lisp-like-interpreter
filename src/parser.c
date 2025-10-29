@@ -43,7 +43,7 @@ struct Node* parseSExpression(struct Parser* parser, char* input){
         prev_cons = cur_cons;
       }
       free(eat(parser,input).name); //todo - consume ) // add in if statment to check if ) otherwise throw error
-
+      
       return head;
     }else{
       free(eat(parser,input).name); //add in if statment to check if ) otherwise throw error

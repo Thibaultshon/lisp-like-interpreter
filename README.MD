@@ -11,8 +11,9 @@ Currently it only supports:
 - basic control flow (if switch while)
 - lexical scoping (let)
 - anonymous functions (lambda)
-- named functions (def)
 - assignment (:=)
+- named functions 
+- recursion
 - basic semantic error checking
 
 
@@ -93,14 +94,18 @@ Use exit() to exit the program
 >> (:= x 2) ((lambda (y) (+ x y)) 3)
 2
 5
->> (def plusOne (x) (+ x 1))
+>> (:=  plusOne (lambda (x) (+ x 1)))
 plusOne
 >> (plusOne 5)
 6
->> (def multiBody (x y ) (:= x (+ x y))   (:= y (+ y x)))
+>> (:= multiBody (lambda (x y ) (:= x (+ x y))   (:= y (+ y x))))
 multiBody
 >> (multiBody (plusOne 2) 6)
 15
+>> (:= recursion (lambda (x) (if (> x 0) (recursion (- x 1)) 9)))
+recursion
+>> (recursion 10)
+9
 >> (switch 3 (case 1 2) (case 2 3))
 ERROR: no case matching predicate
 >> ( 1 2)
