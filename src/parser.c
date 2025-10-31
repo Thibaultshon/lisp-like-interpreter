@@ -2,27 +2,37 @@
 #include <stdlib.h> 
 #include <ctype.h>  
 #include <string.h> 
-#include "util.h"
+#include <stdio.h> 
 
+#include "util.h"
 #include "parser.h"
 
 
 struct Token eat(struct Parser* parser, char* input);
 struct Node* createCons(struct Node* nodecar, struct  Node* nodecdr);
-struct Node* parseAtom(struct Parser* parser, char*input);
-struct Node* parseSExpression(struct Parser* parser, char* input);
+enum ParseResultType parseAtom(struct Parser* parser, char*input, struct Node** node);
+enum ParseResultType parseSExpression(struct Parser* parser, char* input,struct Node** node);
+enum ParseResultType parseClosingBracket(struct Parser* parser, char*input);
 
 
-struct Node*  parse(struct Parser* parser, char* input){
-  return parseSExpression(parser, input);
+void* readMalloc(size_t size){
+  void* ptr = malloc(size);
+  if (ptr == NULL){
+    fprintf(stderr, "Not enough memory");
+    exit(74);
+  }
+  return ptr;
 }
 
 
-struct Node* parseSExpression(struct Parser* parser, char* input){
+enum ParseResultType parse(struct Parser* parser, char* input,struct Node** node){
+  return parseSExpression(parser, input,node);
+}
+
+
+enum ParseResultType parseSExpression(struct Parser* parser, char* input,struct Node** head){
   if (peek(parser,input).type == TOK_BRACK_OPEN){
     free(eat(parser,input).name);
-
-    struct Node* head = NULL;
 
     if (peek(parser,input).type != TOK_BRACK_CLOSE ){
 
@@ -30,66 +40,88 @@ struct Node* parseSExpression(struct Parser* parser, char* input){
       struct Node* prev_cons= NULL;
       while (peek(parser,input).type != TOK_BRACK_CLOSE){        
 
-        struct Node* cur_node = parseSExpression(parser,input);
-        struct Node* cur_cons = createCons(cur_node,NULL);
-        if (!is_head){
+        struct Node* cur_node = NULL;
+        
+        enum ParseResultType result=parseSExpression(parser,input,&cur_node);
+        if (result != PARSE_RESULT_SUCCESS) return result;
 
+        struct Node* cur_cons = createCons(cur_node,NULL);
+        
+        if (!is_head){
           CDR(prev_cons) = cur_cons;
+
         }else{
 
-          head = cur_cons;
+          *head = cur_cons;
           is_head = false;
         }
         prev_cons = cur_cons;
       }
-      free(eat(parser,input).name); //todo - consume ) // add in if statment to check if ) otherwise throw error
-      
-      return head;
+
+      return parseClosingBracket(parser,input);
+
     }else{
-      free(eat(parser,input).name); //add in if statment to check if ) otherwise throw error
-      return NULL; 
+      *head = NULL;
+      return parseClosingBracket(parser,input);
+
     }
   }
   else{
-    return parseAtom(parser, input); // todo - maybe change to create atom
+    enum ParseResultType result=parseAtom(parser, input,head);
+    if (result != PARSE_RESULT_SUCCESS) return result;
   }
-  return NULL; //else error
+}
+
+enum ParseResultType parseClosingBracket(struct Parser* parser, char*input){
+  struct Token tok = eat(parser,input);
+  if (tok.type  == TOK_BRACK_CLOSE){
+    free(tok.name);
+    return  PARSE_RESULT_SUCCESS;
+  }else{
+    free(tok.name);
+    return PARSE_RESULT_MALFORMED_CONS;
+  }
 }
 
 
-struct Node* parseAtom(struct Parser* parser, char* input){
-  struct Node* node = malloc(sizeof(*node));
+
+enum ParseResultType parseAtom(struct Parser* parser, char* input,struct Node** node){
+  *node = readMalloc(sizeof(**node));
 
   struct  Token cur_tok = eat(parser,input);
   switch (cur_tok.type){
   case TOK_NUM:
-    node->type = NODE_NUM;
-    node->atom.num = cur_tok.num;
+    (*node)->type = NODE_NUM;
+    (*node)->atom.num = cur_tok.num;
     break;
   case TOK_STRING:
-    node->type = NODE_STRING;
-    node->atom.symbol  = cur_tok.name;
+    (*node)->type = NODE_STRING;
+    (*node)->atom.symbol  = cur_tok.name;
     break;
   case TOK_OP:
-    node->type = NODE_KEYWORD;
-    node->atom.symbol  = cur_tok.name;
+    (*node)->type = NODE_KEYWORD;
+    (*node)->atom.symbol  = cur_tok.name;
     break;
   case TOK_IDENTIFIER:
-    node->type = NODE_SYMBOL;
-    node->atom.symbol  =cur_tok.name;
+    (*node)->type = NODE_SYMBOL;
+    (*node)->atom.symbol  =cur_tok.name;
     break;
+  case TOK_INVALID:
+    free(*node);
+    *node = NULL;
+    return  PARSE_RESULT_WRONG_LEXEME;
   default:
     if (cur_tok.name) free(cur_tok.name);
-    free(node);
-    return NULL;
+    free(*node);
+    *node = NULL;
+    return PARSE_RESULT_MALFORMED_CONS;
   }
-  return node;        
+  return   PARSE_RESULT_SUCCESS;    
 }
 
 
 struct Node* createCons(struct Node* node_car, struct  Node* node_cdr){
-  struct Node* cur_cons = malloc(sizeof(struct Node));
-  if (!cur_cons) return NULL;
+  struct Node* cur_cons = readMalloc(sizeof(*cur_cons));
   cur_cons->type = NODE_CONS;
   CAR(cur_cons) = node_car;
   CDR(cur_cons) = node_cdr;
@@ -184,8 +216,17 @@ void printNode(struct Node* node){
 
 }
 
-
-
-
-
+const char* parseTypeToString(enum ParseResultType type) { 
+  switch(type)
+    {
+    case PARSE_RESULT_SUCCESS:
+      return "Success";
+    case PARSE_RESULT_MALFORMED_CONS:
+      return "Parsing Error: malformed list";
+    case PARSE_RESULT_WRONG_LEXEME:
+      return "Lexical Error: not valid lexeme";
+    default:
+      return "PARSE ERROR";
+    }
+}
 

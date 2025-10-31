@@ -28,6 +28,8 @@ static inline bool tokenContainsString(struct Token* tok){
   if (!tok)  return false;
   return (tok->type == TOK_STRING ||
           tok->type == TOK_OP ||
+          tok->type == TOK_BRACK_OPEN ||
+          tok->type == TOK_BRACK_CLOSE ||
           tok->type == TOK_IDENTIFIER) &&
     (tok->name != NULL);
 }

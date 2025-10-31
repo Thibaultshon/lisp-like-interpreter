@@ -1,6 +1,6 @@
 CC = gcc -m64
 CFLAGS = -Iinclude -Iexternal/unity -Iexternal/uthash  -Werror -Wpedantic
-OBJS = build/eval.o build/env.o build/parser.o build/tokenize.o build/util.o
+OBJS = build/eval.o build/env.o build/parser.o build/tokenize.o build/util.o build/interpreter.o
 
 all: bin/main.exe
 
@@ -9,25 +9,29 @@ run: bin/main.exe
 
 
 bin/main.exe: $(OBJS) build/main.o 
-	$(CC) $(CFLAGS) $(OBJS) build/main.o  -o bin/main.exe
+	$(CC) $(CFLAGS) $(OBJS) build/main.o -DREPL_MODE -o bin/main.exe	
 
 
 tests: bin/run_tests.exe
 	./bin/run_tests.exe
 
-bin/run_tests.exe: $(OBJS) build/tests/test_eval.o build/tests/unity.o
-	$(CC) $(CFLAGS) $(OBJS) build/tests/test_eval.o build/tests/unity.o  -o bin/run_tests.exe
+bin/run_tests.exe: $(OBJS)  build/tests/test_eval.o build/tests/unity.o
+	$(CC) $(CFLAGS) $(OBJS)  build/tests/test_eval.o build/tests/unity.o  -o bin/run_tests.exe
 
 build/tests/unity.o: external/unity/unity.c
 	$(CC) $(CFLAGS) -c external/unity/unity.c -o build/tests/unity.o
 
-build/tests/test_eval.o: tests/test_eval.c include/util.h include/env.h include/tokenize.h include/parser.h include/eval.h
+build/tests/test_eval.o: tests/test_eval.c include/interpreter.h include/util.h include/env.h include/tokenize.h include/parser.h include/eval.h
 	$(CC) $(CFLAGS) -c tests/test_eval.c -o build/tests/test_eval.o
 
 
 
-build/main.o: src/main.c include/util.h include/env.h include/tokenize.h include/parser.h include/eval.h
+build/main.o: src/main.c include/interpreter.h  include/util.h include/env.h include/tokenize.h include/parser.h include/eval.h
 	$(CC) $(CFLAGS) -c src/main.c -o build/main.o
+
+build/interpreter.o: src/interpreter.c  include/interpreter.h include/util.h include/env.h include/tokenize.h include/parser.h include/eval.h
+	$(CC) $(CFLAGS) -c src/interpreter.c -o build/interpreter.o
+
 
 build/eval.o: src/eval.c include/eval.h include/util.h include/tokenize.h include/parser.h include/env.h
 	$(CC) $(CFLAGS) -c src/eval.c -o build/eval.o

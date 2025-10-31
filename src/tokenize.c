@@ -97,7 +97,7 @@ struct Token tokenize  (char* input, int* i){
         return token;
 
       }else{
-      
+      /* printf("Here"); */
       return createToken(TOK_INVALID,NULL);
       
     }
@@ -155,7 +155,7 @@ void freeTokens(struct Token *tokens){
 
 
 void printStringToTokens(char* input){
-  const size_t max_size= strlen(input);
+  const size_t max_size= strlen(input) +1;
   struct  Token* tokens = malloc(max_size *sizeof(*tokens));  
   int i = 0;
   int index = 0;
@@ -165,6 +165,7 @@ void printStringToTokens(char* input){
   }
   tokens[index].type = TOK_END_LINE;
   freeTokens(tokens);
+  free(tokens);
 }
 
 

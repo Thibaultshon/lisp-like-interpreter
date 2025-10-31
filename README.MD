@@ -14,12 +14,12 @@ Currently it only supports:
 - assignment (:=)
 - named functions 
 - recursion
-- basic semantic error checking
+- basic error checking
 
 
 ## Todo
-- [ ] Add error handling
 - [ ] Read from file
+- [x] Add error handling
 - [x] while statements
 - [x] lexical scoping
 - [x] lambdas
@@ -106,6 +106,13 @@ multiBody
 recursion
 >> (recursion 10)
 9
+>> (let ((addOne (lambda (x)(+ x 1)))) (addOne 3))
+4
+>> &
+Lexical Error: not valid lexeme
+>> (:= x 2) ((lambda (y) (+ x y)) 3
+2
+Parsing Error: malformed list
 >> (switch 3 (case 1 2) (case 2 3))
 ERROR: no case matching predicate
 >> ( 1 2)
